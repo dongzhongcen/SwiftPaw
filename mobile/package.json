@@ -1,0 +1,17 @@
+{
+  "name": "swiftpaw-mobile",
+  "private": true,
+  "version": "1.1.0",
+  "description": "极拍 SwiftPaw 的 Android 版（Capacitor 外壳）",
+  "license": "MIT",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2"
+  }
+}

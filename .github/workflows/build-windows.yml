@@ -1,7 +1,8 @@
 name: 构建 Windows 版
 
 # 推送到 main / feat/release、推送 v 开头的标签、或者在 Actions 页面手动点“Run workflow”时运行。
-# 推送标签（比如 v1.0.0）时，会额外创建 GitHub Release 并上传安装包。
+# 推送标签（比如 v1.0.0）时，会额外编译 Android 版（调用 build-android.yml），
+# 然后创建 GitHub Release，把 Windows 和 Android 的安装包一起上传。
 on:
   push:
     branches: [main, feat/release]
@@ -88,10 +89,16 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  # Android 版：发布时和 Windows 版一起放进 Release。手动运行时也编一次，用来检查这条流程能不能走通
+  android:
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+
   release:
     # 只有推送 v 开头的标签时才发布
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [build, android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -102,6 +109,18 @@ jobs:
         with:
           name: SwiftPaw-win-x64
           path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: SwiftPaw-android
+          path: dist
+
+      # 发布用的必须是签过名的正式版（SwiftPaw-x.y.z-android.apk），不能是 debug 版
+      - name: 检查安装包
+        run: |
+          ls -l dist
+          ls dist/SwiftPaw-*-android.apk > /dev/null || { echo "缺少签名的 Android 安装包（检查仓库的签名 Secrets）"; exit 1; }
+          if ls dist/*-debug.apk > /dev/null 2>&1; then echo "不能发布 debug 版安装包"; exit 1; fi
 
       - uses: softprops/action-gh-release@v2
         with:

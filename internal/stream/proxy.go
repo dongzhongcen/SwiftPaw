@@ -27,8 +27,8 @@ import (
 // maxEntries 是最多记住多少个登记过的地址，超过时删掉最早的
 const maxEntries = 200
 
-// defaultUserAgent 是插件没指定 User-Agent 时用的
-const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+// DefaultUserAgent 是插件没指定 User-Agent 时用的
+const DefaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 
 // ErrBadURL 表示地址不是 http/https
 var ErrBadURL = errors.New("只支持 http/https 的播放地址")
@@ -123,7 +123,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			req.Header.Set(h, v)
 		}
 	}
-	req.Header.Set("User-Agent", defaultUserAgent)
+	req.Header.Set("User-Agent", DefaultUserAgent)
 	for k, v := range e.headers {
 		req.Header.Set(k, v) // 插件给的请求头（Referer、User-Agent、Cookie 等）优先
 	}

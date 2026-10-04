@@ -3,6 +3,7 @@ package music
 
 import (
 	"encoding/json"
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -121,4 +122,32 @@ func ReadInfo(path string) Song {
 	song.Album = strings.TrimSpace(metadata.Album())
 
 	return song
+}
+
+// ErrNoCover 表示音频文件里没有内嵌封面
+var ErrNoCover = errors.New("没有内嵌封面")
+
+// Picture 是一张封面图片
+type Picture struct {
+	MIME string `json:"mime"` // 比如 image/jpeg
+	Data []byte `json:"data"`
+}
+
+// ReadCover 读取音频文件里内嵌的封面（tag 库能读 mp3、flac、m4a、ogg 里的封面）
+func ReadCover(path string) (Picture, error) {
+	if !IsAudio(path) {
+		return Picture{}, errors.New("只允许读取音频文件的封面")
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return Picture{}, err
+	}
+	defer file.Close()
+
+	metadata, err := tag.ReadFrom(file)
+	if err != nil || metadata.Picture() == nil {
+		return Picture{}, ErrNoCover
+	}
+	picture := metadata.Picture()
+	return Picture{MIME: picture.MIMEType, Data: picture.Data}, nil
 }

@@ -1,0 +1,88 @@
+apply plugin: 'com.android.application'
+
+// 版本号：versionName 显示给用户看，versionCode 每次发布都要变大（1.1.0 → 10100）
+def appVersionName = "1.1.0"
+def appVersionCode = 10100
+
+// 正式版的签名：CI 里从仓库的 Secrets 解出签名文件，通过环境变量传进来。
+// 没有这些环境变量时（比如本地编译、别人 fork 的仓库发来的 PR）只能编 debug 版
+def keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
+def hasReleaseKey = keystoreFile != null && !keystoreFile.isEmpty() && file(keystoreFile).exists()
+
+android {
+    namespace = "com.dongzhongcen.swiftpaw"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.dongzhongcen.swiftpaw"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode appVersionCode
+        versionName appVersionName
+        aaptOptions {
+            // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+            // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile file(keystoreFile)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            // debug 版可以和正式版同时装在一台手机上
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseKey) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+    packaging {
+        jniLibs {
+            // Go 内核的 .so 比较大，压缩后放进安装包，下载的安装包能小一半多
+            useLegacyPackaging = true
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    // Go 内核：由 mobile/scripts/build-aar.sh 用 gomobile bind 生成，不提交到仓库
+    implementation files('libs/swiftpaw-core.aar')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+// 还没生成 Go 内核时给出清楚的提示，而不是一堆“找不到类”的编译错误
+tasks.named('preBuild') {
+    doFirst {
+        if (!file('libs/swiftpaw-core.aar').exists()) {
+            throw new GradleException("找不到 app/libs/swiftpaw-core.aar，请先运行 mobile/scripts/build-aar.sh 编译 Go 内核")
+        }
+    }
+}
+
+apply from: 'capacitor.build.gradle'
