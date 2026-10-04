@@ -6,6 +6,10 @@ export function AddToPlaylist(arg1, arg2) {
   return window['go']['main']['App']['AddToPlaylist'](arg1, arg2);
 }
 
+export function AppVersion() {
+  return window['go']['main']['App']['AppVersion']();
+}
+
 export function ClearHistory() {
   return window['go']['main']['App']['ClearHistory']();
 }

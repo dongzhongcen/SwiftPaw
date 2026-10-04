@@ -182,12 +182,13 @@ export const togglePlay = guard(async () => {
   else player.pause();
 });
 
-async function previous() {
+// previous / next 也给系统媒体控制（键盘上的媒体键、任务栏）用
+export async function previous() {
   if (await startFromLibraryIfQueueEmpty()) return;
   await applyQueue(await QueuePrevious(), true);
 }
 
-async function next() {
+export async function next() {
   if (await startFromLibraryIfQueueEmpty()) return;
   await applyQueue(await QueueNext(false), true);
 }
