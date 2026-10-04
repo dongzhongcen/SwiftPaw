@@ -1,16 +1,19 @@
-// 插件页：查看已安装的插件，安装、卸载、启用/停用。
+// 插件页：查看已安装的插件，安装、卸载、启用/停用，填写插件设置。
 // 插件是一个 .js 文件，负责告诉 SwiftPaw 怎么搜索歌曲、怎么拿到播放地址和歌词。
 
 import {
   InstallPluginFromFile,
   InstallPluginFromURL,
+  PluginUserVariables,
   Plugins,
   ReloadPlugins,
   SetPluginEnabled,
+  SetPluginUserVariables,
   UninstallPlugin,
 } from '../../wailsjs/go/main/App';
 import { icons } from './icons.js';
-import { confirmDialog, promptDialog } from './dialog.js';
+import { confirmDialog, formDialog, promptDialog } from './dialog.js';
+import { DISCLAIMER } from './disclaimer.js';
 import { registerView, renderView } from './views.js';
 import { escapeHtml, guard, toast } from './util.js';
 
@@ -56,6 +59,9 @@ function renderPlugins(body, plugins) {
       }
     }));
   });
+  body.querySelectorAll('[data-settings]').forEach((button) => {
+    button.addEventListener('click', guard(() => openSettings(plugins.find((p) => p.id === button.dataset.settings))));
+  });
   body.querySelectorAll('[data-uninstall]').forEach((button) => {
     button.addEventListener('click', guard(async () => {
       const plugin = plugins.find((p) => p.id === button.dataset.uninstall);
@@ -74,7 +80,25 @@ function renderPlugins(body, plugins) {
   });
 }
 
-// pluginCard 是一个插件的卡片：名字、版本、作者、能做什么、出错原因、启用开关和卸载按钮
+// openSettings 打开插件设置对话框：插件声明的每个用户变量（比如 API Key）一个输入框。
+// 保存后插件会重新加载，新的设置马上生效
+async function openSettings(plugin) {
+  const name = plugin.platform || plugin.id;
+  const saved = (await PluginUserVariables(plugin.id)) || {};
+  const values = await formDialog({
+    title: `插件设置：${name}`,
+    message: '这些内容只保存在这台电脑上，由插件自己使用。',
+    fields: plugin.userVariables.map((v) => ({ name: v.key, label: v.name || v.key, hint: v.hint, value: saved[v.key] })),
+  });
+  if (!values) return; // 用户点了取消
+  const info = await SetPluginUserVariables(plugin.id, values);
+  if (info?.error) toast(`设置已保存，但插件重新加载失败：${info.error}`, true);
+  else toast(`已保存「${name}」的设置`);
+  await renderView();
+}
+
+// pluginCard 是一个插件的卡片：名字、版本、作者、能做什么、出错原因、启用开关、设置和卸载按钮。
+// 只有声明了用户变量（userVariables）的插件才有“设置”按钮
 function pluginCard(p) {
   const abilities = [p.canSearch && '搜索', p.canPlay && '播放', p.canLyric && '歌词'].filter(Boolean);
   let status = p.enabled ? '已启用' : '已停用';
@@ -99,6 +123,7 @@ function pluginCard(p) {
           <input type="checkbox" data-toggle="${escapeHtml(p.id)}" ${p.enabled ? 'checked' : ''} ${p.error ? 'disabled' : ''} />
           <span class="switch-track"></span>
         </label>
+        ${p.userVariables?.length ? `<button class="btn" type="button" data-settings="${escapeHtml(p.id)}">${icons.settings}<span>设置</span></button>` : ''}
         <button class="btn danger" type="button" data-uninstall="${escapeHtml(p.id)}">${icons.trash}<span>卸载</span></button>
       </div>
     </div>`;
@@ -120,6 +145,13 @@ async function installFromURL() {
     maxLength: 2000,
   });
   if (!url) return;
+  // 安装前再确认一次：插件来自第三方，提醒用户免责声明
+  const ok = await confirmDialog({
+    title: '安装插件',
+    message: `将从这个网址下载并安装插件：\n${url}\n\n${DISCLAIMER}`,
+    okText: '安装',
+  });
+  if (!ok) return;
   toast('正在下载插件…');
   const list = (await InstallPluginFromURL(url)) || [];
   toast(`已安装 ${list.length} 个插件：${list.map((p) => p.platform).join('、')}`);

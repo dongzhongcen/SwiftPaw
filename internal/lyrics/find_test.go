@@ -29,16 +29,16 @@ func TestDecode(t *testing.T) {
 
 func TestFindLrcFile(t *testing.T) {
 	dir := t.TempDir()
-	audio := filepath.Join(dir, "晴天.mp3")
+	audio := filepath.Join(dir, "海边小路.mp3")
 	write(t, audio, []byte("not really mp3"))
-	gbk, _ := simplifiedchinese.GBK.NewEncoder().Bytes([]byte("[ti:晴天]\n[00:01.00]故事的小黄花"))
-	write(t, filepath.Join(dir, "晴天.LRC"), gbk) // 大写扩展名 + GBK 编码
+	gbk, _ := simplifiedchinese.GBK.NewEncoder().Bytes([]byte("[ti:海边小路]\n[00:01.00]第一句测试歌词"))
+	write(t, filepath.Join(dir, "海边小路.LRC"), gbk) // 大写扩展名 + GBK 编码
 
 	got, err := Find(audio)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Source != "lrc" || len(got.Lines) != 1 || got.Lines[0].Text != "故事的小黄花" {
+	if got.Source != "lrc" || len(got.Lines) != 1 || got.Lines[0].Text != "第一句测试歌词" {
 		t.Fatalf("没有正确读取同名 LRC：%+v", got)
 	}
 }

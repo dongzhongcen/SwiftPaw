@@ -8,6 +8,7 @@
 ![Go](https://img.shields.io/github/go-mod/go-version/dongzhongcen/SwiftPaw)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ![SwiftPaw main window (dark theme)](docs/screenshots/dark.png)
 
@@ -43,6 +44,7 @@ I've tried to write the code comments so that beginners can follow them, and to 
 **Plugins and online music**
 - Install plugins from a file or a URL; enable, disable or uninstall them
 - Search online through plugins; songs you find can be played right away, added to favorites or added to playlists
+- Plugins can have their own settings (such as an API key); fill them in with the "Settings" (设置) button on the Plugins page, and they take effect as soon as you save
 - Plugins run in a built-in JS engine ([goja](https://github.com/dop251/goja)), so you don't need Node.js; common modules such as `axios`, `crypto-js`, `cheerio` and `dayjs` are built in
 
 **Appearance**
@@ -85,6 +87,7 @@ SwiftPaw/
 ├── examples/plugins/     # Example plugin
 ├── scripts/
 │   ├── genbindings/      # Generates the frontend bindings without installing Wails
+│   ├── notices/          # Generates THIRD_PARTY_NOTICES.md
 │   └── jslib/            # Bundles the JS libraries used by plugins into one file
 ├── build/                # Icons, Windows installer config
 └── .github/workflows/    # Tests and Windows packaging
@@ -102,6 +105,10 @@ Download from [Releases](https://github.com/dongzhongcen/SwiftPaw/releases):
 For the latest code that hasn't been released yet, you can download the `SwiftPaw-win-x64` artifact from [Actions → 构建 Windows 版 (Build Windows)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml).
 
 Requires Windows 10 / 11 (64-bit) and WebView2 (included with Windows 11, and already installed on most Windows 10 machines).
+
+To upgrade, just run the new installer: it checks for an existing install, asks whether to replace it, then uninstalls the old version and installs into the same folder. If SwiftPaw is running, it asks you to close it first. Playlists, favorites, plugins and plugin settings are stored in `%AppData%\SwiftPaw`, so upgrading keeps them.
+
+Both the zip and the install folder include `LICENSE`, `THIRD_PARTY_NOTICES.md` (licenses of the third-party open-source software) and `OFL.txt` (the font license).
 
 ### First Use
 
@@ -134,7 +141,7 @@ cd frontend && npm ci && npm run build
 
 ### Writing a Plugin
 
-A plugin is a `.js` file in CommonJS format:
+A plugin is a `.js` file in CommonJS format, compatible with common plugin formats:
 
 ```js
 const axios = require("axios");
@@ -142,7 +149,10 @@ const axios = require("axios");
 module.exports = {
   platform: "My music source",
   version: "1.0.0",
+  // Optional: settings the user fills in; the Plugins page shows a "Settings" button. name and hint are optional
+  userVariables: [{ key: "key", name: "API Key", hint: "Get one from the service's website" }],
   async search(query, page) {
+    const { key } = env.getUserVariables(); // Read the user's settings
     // Return { isEnd: whether there are no more pages, data: [{ id, title, artist, album, artwork, duration }] }
   },
   async getMediaSource(musicItem, quality) {
@@ -158,7 +168,7 @@ For a complete example see [`examples/plugins/archive-org.js`](examples/plugins/
 
 ## Current Status
 
-It's now at **1.0.0**. All the features listed above are done, with unit tests and UI walkthroughs. See [CHANGELOG.md](CHANGELOG.md) for the change history.
+It's now at **1.0.1**. All the features listed above are done, with unit tests and UI walkthroughs. See [CHANGELOG.md](CHANGELOG.md) for the change history.
 
 Known limitations:
 
@@ -168,3 +178,13 @@ Known limitations:
 - There's no auto-update yet; you need to download new versions from Releases yourself
 
 If you have questions or suggestions, feel free to open an [Issue](https://github.com/dongzhongcen/SwiftPaw/issues).
+
+## License
+
+[MIT](LICENSE). The third-party open-source software used and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Disclaimer
+
+This software does not provide any music sources and does not include any third-party platform plugins. Plugins are installed by users themselves, and users and plugin authors are responsible for their content and legality. Please comply with local laws and the terms of service of each platform, and use this software only for personal learning and lawful purposes.
+
+The example plugin in this repository, `examples/plugins/archive-org.js`, is written by this project and only searches public-domain audio on the Internet Archive.

@@ -8,6 +8,7 @@
 ![Go](https://img.shields.io/github/go-mod/go-version/dongzhongcen/SwiftPaw)
 ![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%2010%20%2F%2011-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
+[![许可证](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-blue)](LICENSE)
 
 ![极拍的主界面（深色主题）](docs/screenshots/dark.png)
 
@@ -41,6 +42,7 @@
 **插件和在线音乐**
 - 从文件或网址安装插件，可以启用、停用、卸载
 - 用插件在线搜索，搜到的歌可以直接播放、收藏、加入歌单
+- 插件可以有自己的设置（比如 API Key），在插件页点“设置”填写，保存后马上生效
 - 插件在内置的 JS 引擎（[goja](https://github.com/dop251/goja)）里运行，不需要装 Node.js；常用的 `axios`、`crypto-js`、`cheerio`、`dayjs` 等模块已经内置
 
 **外观**
@@ -83,6 +85,7 @@ SwiftPaw/
 ├── examples/plugins/     # 示例插件
 ├── scripts/
 │   ├── genbindings/      # 不装 Wails 也能生成前端绑定
+│   ├── notices/          # 生成第三方许可证说明 THIRD_PARTY_NOTICES.md
 │   └── jslib/            # 把插件用的 JS 库打包成一个文件
 ├── build/                # 图标、Windows 安装程序的配置
 └── .github/workflows/    # 测试和 Windows 打包
@@ -100,6 +103,10 @@ SwiftPaw/
 还没有发布的最新代码，可以在 [Actions → 构建 Windows 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml) 里下载 `SwiftPaw-win-x64` 构建产物。
 
 需要 Windows 10 / 11（64 位）和 WebView2（Windows 11 自带，Windows 10 大多也装好了）。
+
+升级时直接运行新版本的安装程序就行：它会先检查有没有装过旧版本，问你是否替换，然后自动卸载旧版本、装到原来的文件夹。如果极拍正在运行，会提示先关掉。歌单、收藏、插件和插件设置都保存在 `%AppData%\SwiftPaw`，升级不会丢。
+
+压缩包和安装文件夹里都带着 `LICENSE`、`THIRD_PARTY_NOTICES.md`（第三方开源软件的许可证）和 `OFL.txt`（字体许可证）。
 
 ### 第一次使用
 
@@ -132,7 +139,7 @@ cd frontend && npm ci && npm run build
 
 ### 写一个插件
 
-插件是一个 CommonJS 格式的 `.js` 文件：
+插件是一个 CommonJS 格式的 `.js` 文件，兼容常见的插件格式：
 
 ```js
 const axios = require("axios");
@@ -140,7 +147,10 @@ const axios = require("axios");
 module.exports = {
   platform: "我的音乐源",
   version: "1.0.0",
+  // 可选：需要用户填写的设置，插件页会显示“设置”按钮。name 和 hint 可以不写
+  userVariables: [{ key: "key", name: "API Key", hint: "在服务网站上申请" }],
   async search(query, page) {
+    const { key } = env.getUserVariables(); // 读取用户填的设置
     // 返回 { isEnd: 是否没有下一页了, data: [{ id, title, artist, album, artwork, duration }] }
   },
   async getMediaSource(musicItem, quality) {
@@ -156,7 +166,7 @@ module.exports = {
 
 ## 当前状态
 
-现在是 **1.0.0**，上面列的功能都已经完成，有单元测试和界面走查。改动记录见 [CHANGELOG.md](CHANGELOG.md)。
+现在是 **1.0.1**，上面列的功能都已经完成，有单元测试和界面走查。改动记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 目前知道的不足：
 
@@ -166,3 +176,13 @@ module.exports = {
 - 还没有自动更新，新版本需要自己去 Releases 下载
 
 有问题或者建议，欢迎提 [Issue](https://github.com/dongzhongcen/SwiftPaw/issues)。
+
+## 许可证
+
+[MIT](LICENSE)。用到的第三方开源软件和它们的许可证见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+## 免责声明
+
+本软件不提供任何音乐源，也不内置任何第三方平台插件；插件由用户自行安装，其内容及合法性由用户和插件作者负责；请遵守当地法律及各平台服务条款，仅用于个人学习和合法用途。
+
+仓库里的示例插件 `examples/plugins/archive-org.js` 是本项目自己写的，只搜索 Internet Archive 上的公有领域音频。

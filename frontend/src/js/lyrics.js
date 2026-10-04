@@ -80,7 +80,7 @@ function renderLyrics(body) {
   } else if (lyrics.lines.length === 0) {
     const tip = isOnline(song)
       ? `「${song.source}」插件没有提供这首歌的歌词`
-      : '把同名的 .lrc 文件放在歌曲旁边就能显示，比如 晴天.mp3 和 晴天.lrc';
+      : '把同名的 .lrc 文件放在歌曲旁边就能显示，比如 我的歌.mp3 和 我的歌.lrc';
     linesHtml = `<p class="lyrics-tip">暂无歌词</p>
       <p class="lyrics-tip small">${escapeHtml(tip)}</p>`;
   } else {

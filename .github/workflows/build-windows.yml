@@ -53,11 +53,34 @@ jobs:
         run: |
           $version = (Get-Content wails.json -Raw | ConvertFrom-Json).info.productVersion
           New-Item -ItemType Directory -Force dist | Out-Null
-          Compress-Archive -Path build/bin/SwiftPaw.exe -DestinationPath "dist/SwiftPaw-$version-win-x64.zip"
+          # 压缩包里放 exe 和许可证文件（本项目的 LICENSE、第三方许可证说明、字体许可证）
+          $files = "build/bin/SwiftPaw.exe", "LICENSE", "THIRD_PARTY_NOTICES.md", "frontend/src/assets/fonts/OFL.txt"
+          Compress-Archive -Path $files -DestinationPath "dist/SwiftPaw-$version-win-x64.zip"
           Get-ChildItem build/bin -Filter "*installer*.exe" | ForEach-Object {
             Copy-Item $_.FullName "dist/SwiftPaw-$version-win-x64-setup.exe"
           }
           Get-ChildItem dist | Format-Table Name, Length
+
+      # 确认压缩包和安装程序里都有 exe 和许可证文件；7-Zip 能直接列出 NSIS 安装程序里的文件
+      - name: 检查打包内容
+        shell: pwsh
+        run: |
+          $need = "SwiftPaw.exe", "LICENSE", "THIRD_PARTY_NOTICES.md", "OFL.txt"
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zipPath = (Get-ChildItem dist -Filter "*.zip").FullName
+          $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
+          $names = $zip.Entries | ForEach-Object { $_.FullName }
+          $zip.Dispose()
+          "压缩包：$($names -join ', ')"
+          foreach ($f in $need) { if ($names -notcontains $f) { throw "压缩包里缺少 $f" } }
+          $setup = Get-ChildItem dist -Filter "*-setup.exe" | Select-Object -First 1
+          if ($setup) {
+            $list = (7z l $setup.FullName) -join "`n"
+            $list
+            foreach ($f in $need) { if ($list -notmatch [regex]::Escape($f)) { throw "安装程序里缺少 $f" } }
+          } else {
+            "没有安装程序（NSIS 没装上），只检查压缩包"
+          }
 
       - uses: actions/upload-artifact@v4
         with:

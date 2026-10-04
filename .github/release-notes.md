@@ -1,11 +1,19 @@
-## 极拍 SwiftPaw 1.0.0
+## 极拍 SwiftPaw 1.0.1
 
-第一个正式版本，一个简洁的 Windows 本地音乐播放器。
+一个简洁的 Windows 本地音乐播放器。
+
+### 这个版本的改动
+
+- 插件设置：插件可以声明需要填写的设置（比如 API Key），在插件页点“设置”填写，保存后马上生效
+- 安装程序会检查旧版本，询问后自动替换，歌单、收藏和插件设置都会保留
+- 加入 MIT 许可证、第三方许可证说明和免责声明
 
 ### 下载
 
-- `SwiftPaw-1.0.0-win-x64-setup.exe`：安装程序，装好后开始菜单和桌面都有快捷方式
-- `SwiftPaw-1.0.0-win-x64.zip`：免安装版，解压后直接运行 `SwiftPaw.exe`
+- `SwiftPaw-1.0.1-win-x64-setup.exe`：安装程序，装好后开始菜单和桌面都有快捷方式
+- `SwiftPaw-1.0.1-win-x64.zip`：免安装版，解压后直接运行 `SwiftPaw.exe`
+
+从旧版本升级时直接运行新的安装程序即可。
 
 需要 Windows 10 或 11（64 位）。程序依赖系统自带的 WebView2，Windows 11 和大多数 Windows 10 已经装好了；如果打开时提示缺少 WebView2，按提示安装即可。
 
@@ -16,7 +24,11 @@
 - 我喜欢、自建歌单、最近播放，保存在本地 SQLite 数据库
 - LRC 歌词（同名 .lrc 文件或内嵌歌词，自动识别 GBK 编码），当前行高亮，点一行跳过去
 - 深色 / 浅色 / 跟随系统主题
-- 插件：装上插件就能在线搜索、播放、收藏歌曲。仓库里的 `examples/plugins/archive-org.js` 是一个示例插件，可以搜索 Internet Archive 上的公有领域音频
+- 插件：装上插件就能在线搜索、播放、收藏歌曲，插件可以有自己的设置。仓库里的 `examples/plugins/archive-org.js` 是一个示例插件，可以搜索 Internet Archive 上的公有领域音频
 - 支持键盘媒体键和 Windows 的系统媒体控制，记住窗口大小
 
 完整的改动记录见 [CHANGELOG.md](https://github.com/dongzhongcen/SwiftPaw/blob/main/CHANGELOG.md)。
+
+### 免责声明
+
+本软件不提供任何音乐源，也不内置任何第三方平台插件；插件由用户自行安装，其内容及合法性由用户和插件作者负责；请遵守当地法律及各平台服务条款，仅用于个人学习和合法用途。

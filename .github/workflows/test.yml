@@ -29,6 +29,11 @@ jobs:
           go run ./scripts/genbindings
           git diff --exit-code frontend/wailsjs
 
+      - name: 检查第三方许可证说明是否最新
+        run: |
+          go run ./scripts/notices
+          git diff --exit-code THIRD_PARTY_NOTICES.md
+
       - name: 前端构建
         working-directory: frontend
         run: |

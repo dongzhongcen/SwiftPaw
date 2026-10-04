@@ -32,7 +32,7 @@ type Env struct {
 	AppVersion    string
 	OS            string            // 默认 win32
 	Lang          string            // 默认 zh-CN
-	UserVariables map[string]string // 用户给插件填的变量，目前为空
+	UserVariables map[string]string // 用户在“插件设置”里给这个插件填的值，插件用 env.getUserVariables() 读取
 }
 
 // Options 是创建运行环境的参数

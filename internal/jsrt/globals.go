@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/dop251/goja"
@@ -35,10 +37,13 @@ func setupBrowserGlobals(vm *goja.Runtime, r *Runtime) error {
 	env.Set("appVersion", r.opts.Env.AppVersion)
 	env.Set("os", r.opts.Env.OS)
 	env.Set("lang", r.opts.Env.Lang)
+	// getUserVariables 返回用户在插件设置里填的值，比如 { key: "..." }；没填的项不会出现。
+	// 每次调用都返回一个新对象，插件改了它也不会影响下一次读取
 	env.Set("getUserVariables", func(goja.FunctionCall) goja.Value {
 		vars := vm.NewObject()
-		for k, v := range r.opts.Env.UserVariables {
-			vars.Set(k, v)
+		// 按变量名排序再放进去，这样每次得到的对象顺序都一样（Go 的 map 遍历顺序是随机的）
+		for _, k := range slices.Sorted(maps.Keys(r.opts.Env.UserVariables)) {
+			vars.Set(k, r.opts.Env.UserVariables[k])
 		}
 		return vars
 	})

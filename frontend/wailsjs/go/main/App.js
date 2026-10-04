@@ -58,6 +58,10 @@ export function Playlists() {
   return window['go']['main']['App']['Playlists']();
 }
 
+export function PluginUserVariables(arg1) {
+  return window['go']['main']['App']['PluginUserVariables'](arg1);
+}
+
 export function Plugins() {
   return window['go']['main']['App']['Plugins']();
 }
@@ -132,6 +136,10 @@ export function SelectFolder() {
 
 export function SetPluginEnabled(arg1, arg2) {
   return window['go']['main']['App']['SetPluginEnabled'](arg1, arg2);
+}
+
+export function SetPluginUserVariables(arg1, arg2) {
+  return window['go']['main']['App']['SetPluginUserVariables'](arg1, arg2);
 }
 
 export function ToggleFavorite(arg1) {
