@@ -101,7 +101,8 @@ h1 {
 
 .song-item {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 180px) auto;
+    align-items: center;
     gap: 16px;
     border-bottom: 1px solid #333333;
     padding: 14px 0;
@@ -130,8 +131,81 @@ h1 {
     color: #cfcfcf;
 }
 
-.song-item.active .song-artist {
+.song-item.active .song-artist,
+.song-item.active .song-format {
     color: #000000;
+}
+
+.song-format {
+    border: 1px solid #555555;
+    padding: 1px 6px;
+    color: #cfcfcf;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+}
+
+.song-format:empty {
+    display: none;
+}
+
+/* 行尾的“下一首播放 / 移除”按钮，鼠标移到这一行时才显示 */
+.row-action {
+    margin-right: 12px;
+    padding: 4px 10px;
+    font-size: 13px;
+    visibility: hidden;
+}
+
+.song-item:hover .row-action,
+.row-action:focus-visible {
+    visibility: visible;
+}
+
+.song-item.active .row-action {
+    border-color: #000000;
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.song-item.active .row-action:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: -1px;
+}
+
+.tab {
+    border-bottom: none;
+    color: #cfcfcf;
+}
+
+.tab + .tab {
+    border-left: none;
+}
+
+.tab.active {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.song-list[hidden] {
+    display: none;
+}
+
+.queue-label {
+    padding: 14px 12px 6px;
+    color: #8f8f8f;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+}
+
+.queue-empty {
+    padding: 18px 12px;
+    color: #8f8f8f;
 }
 
 @media (max-width: 640px) {
@@ -146,8 +220,12 @@ h1 {
     }
 
     .song-item {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 4px;
+    }
+
+    .song-artist {
+        grid-column: 1;
     }
 
     .song-artist {

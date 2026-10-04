@@ -1,0 +1,37 @@
+name: 测试
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Go 单元测试
+        run: |
+          go vet ./internal/...
+          go test ./internal/...
+
+      - name: 前端构建
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: 编译 Windows 版（检查能不能编过）
+        env:
+          GOOS: windows
+          GOARCH: amd64
+        run: go build -tags desktop,production -ldflags "-H windowsgui" -o SwiftPaw.exe .
