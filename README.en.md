@@ -219,7 +219,7 @@ For a complete example see [`examples/plugins/archive-org.js`](examples/plugins/
 
 ## Current Status
 
-It's now at **1.1.0**. All the features listed above are done, with unit tests and UI walkthroughs. See [CHANGELOG.md](CHANGELOG.md) for the change history.
+It's now at **1.2.0**. All the features listed above are done, with unit tests and UI walkthroughs. See [CHANGELOG.md](CHANGELOG.md) for the change history.
 
 Known limitations:
 
