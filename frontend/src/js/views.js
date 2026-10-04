@@ -18,6 +18,7 @@ import { applyQueue, audio, playSongs } from './player.js';
 import { renderSongList, markActive, updateHearts } from './songlist.js';
 import { state, on, emit } from './state.js';
 import { $, escapeHtml, songKey, toast, guard } from './util.js';
+import { isAndroid } from './platform.js';
 
 // 把一组歌变成列表需要的 items（index 是它在原数组里的位置）
 const toItems = (songs) => songs.map((song, index) => ({ song, index }));
@@ -29,6 +30,7 @@ const playAllAction = (songs) => ({ label: '播放全部', icon: icons.play, pri
 const views = {
   async library() {
     const songs = state.library;
+    if (isAndroid) return deviceLibraryView(songs);
     return {
       title: '本地音乐',
       subtitle: state.folder ? `${songs.length} 首歌 · ${state.folder}` : '还没有选择音乐文件夹',
@@ -137,6 +139,26 @@ const views = {
     };
   },
 };
+
+// Android 上的本地音乐：歌曲来自整个手机的媒体库，没有“选择文件夹”
+function deviceLibraryView(songs) {
+  const scanned = !!state.folder;
+  return {
+    title: '本地音乐',
+    subtitle: scanned ? `${songs.length} 首歌 · 手机里的音乐` : '还没有扫描手机里的音乐',
+    actions: [
+      playAllAction(songs),
+      { label: scanned ? '重新扫描' : '扫描本机音乐', icon: icons.refresh, run: scanned ? rescan : pickFolder },
+    ],
+    groups: [{ items: toItems(songs) }],
+    rowActions: ['favorite', 'next', 'add'],
+    onPlay: (item) => playSongs(songs, item.index),
+    empty: scanned
+      ? '<p>手机里没有找到音乐</p><p class="muted">把歌曲复制到手机的 Music 或 Download 文件夹，再点“重新扫描”</p>'
+      : '<p>还没有扫描手机里的音乐</p><button class="btn primary" data-empty-action>扫描本机音乐</button>',
+    emptyAction: pickFolder,
+  };
+}
 
 // registerView 让其他模块注册自己的页面，比如 registerView('lyrics', loadLyricsView)
 export function registerView(kind, load) {

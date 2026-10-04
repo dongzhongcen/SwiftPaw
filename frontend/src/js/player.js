@@ -14,6 +14,9 @@ import { icons } from './icons.js';
 import { saveConfig } from './config.js';
 import { state, on, emit, currentSong } from './state.js';
 import { $, displayName, songKey, isOnline, formatTime, toast, guard, errorText } from './util.js';
+import { isAndroid } from './platform.js';
+import { NativeAudio } from './native/audio.js';
+import { onNative } from './native/android.js';
 
 // 播放模式，顺序就是点“模式”按钮时的切换顺序
 export const playModes = [
@@ -22,7 +25,13 @@ export const playModes = [
   { value: 'shuffle', label: '随机播放', icon: icons.shuffle },
 ];
 
-export const audio = () => $('audio');
+// Android 上用原生播放器（见 native/audio.js），桌面版用页面里隐藏的 <audio>
+let nativeAudio = null;
+export const audio = () => {
+  if (!isAndroid) return $('audio');
+  nativeAudio ||= new NativeAudio();
+  return nativeAudio;
+};
 
 let loadedKey = ''; // <audio> 里现在加载的是哪首歌
 let recordedKey = ''; // 已经记录过“最近播放”的歌，同一次加载只记一次
@@ -69,20 +78,24 @@ export function initPlayer() {
   player.addEventListener('play', updatePlayButton);
   player.addEventListener('pause', updatePlayButton);
 
-  player.addEventListener('ended', guard(async () => {
-    await applyQueue(await QueueNext(true), true);
-  }));
+  if (isAndroid) {
+    initNativeEvents();
+  } else {
+    player.addEventListener('ended', guard(async () => {
+      await applyQueue(await QueueNext(true), true);
+    }));
 
-  player.addEventListener('playing', () => {
-    errorStreak = 0;
-    recordPlayOnce();
-  });
+    player.addEventListener('playing', () => {
+      errorStreak = 0;
+      recordPlayOnce();
+    });
 
-  // 某首歌放不了（比如格式不支持或文件被删了），提示一下并跳到下一首
-  player.addEventListener('error', guard(async () => {
-    if (!loadedKey) return;
-    await skipBroken($('pb-title').textContent, '');
-  }));
+    // 某首歌放不了（比如格式不支持或文件被删了），提示一下并跳到下一首
+    player.addEventListener('error', guard(async () => {
+      if (!loadedKey) return;
+      await skipBroken($('pb-title').textContent, '');
+    }));
+  }
 
   player.addEventListener('volumechange', () => {
     updateVolumeView();
@@ -91,6 +104,16 @@ export function initPlayer() {
 
   on('song-changed', updateTrackView);
   updateVolumeView();
+}
+
+// Android 上自动下一首、跳过放不了的歌、记最近播放都由原生做（界面在后台时也要能做），
+// 这里只根据原生发来的事件刷新界面
+function initNativeEvents() {
+  onNative('queueChanged', guard(async (data) => {
+    await applyQueue(JSON.parse(data.json), false);
+  }));
+  onNative('playerError', (data) => toast(data.message, true));
+  onNative('recentChanged', () => emit('recent-changed'));
 }
 
 // setVolume 在启动恢复时设置音量
@@ -158,6 +181,7 @@ async function skipBroken(name, reason) {
 // mediaUrl 返回 <audio> 要加载的地址。
 // 本地文件由 Go 的 /music 路由提供；在线歌曲先问插件要地址，再通过 Go 的 /stream 代理播放。
 async function mediaUrl(song) {
+  if (isAndroid) return 'native:' + songKey(song); // 原生播放器自己从队列里找这首歌
   if (isOnline(song)) return ResolveSong(song);
   return '/music?path=' + encodeURIComponent(song.path);
 }
@@ -204,7 +228,7 @@ async function cycleMode() {
 async function startFromLibraryIfQueueEmpty() {
   if (state.queue.songs.length > 0) return false;
   if (state.library.length === 0) {
-    toast('请先选择音乐文件夹');
+    toast(isAndroid ? '请先扫描本机音乐' : '请先选择音乐文件夹');
     return true;
   }
   await applyQueue(await PlayLibrary(0), true);
@@ -273,7 +297,9 @@ export function updateTrackView(song) {
   const cover = $('cover');
   if (!song) {
     $('pb-title').textContent = '尚未选择歌曲';
-    $('pb-artist').textContent = state.library.length ? '在列表里点一首歌开始播放' : '请选择一个音乐文件夹';
+    $('pb-artist').textContent = state.library.length
+      ? '在列表里点一首歌开始播放'
+      : isAndroid ? '请先扫描本机音乐' : '请选择一个音乐文件夹';
     cover.hidden = true;
     $('time-current').textContent = '0:00';
     $('time-total').textContent = '0:00';

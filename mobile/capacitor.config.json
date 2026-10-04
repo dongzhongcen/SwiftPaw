@@ -3,7 +3,8 @@
   "appName": "极拍",
   "webDir": "../frontend/dist",
   "android": {
-    "path": "android"
+    "path": "android",
+    "allowMixedContent": true
   },
   "plugins": {
     "SystemBars": {
