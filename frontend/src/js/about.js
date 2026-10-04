@@ -35,8 +35,8 @@ export function initAbout() {
             <div class="settings-label">开源许可</div>
             <div class="settings-hint">${
               isAndroid
-                ? 'MIT 许可证；用到的第三方开源软件和它们的许可证点右边查看'
-                : 'MIT 许可证；用到的第三方开源软件见安装文件夹里的 THIRD_PARTY_NOTICES.md'
+                ? 'MIT 许可证；用到的第三方开源软件、字体和它们的许可证点右边查看'
+                : 'MIT 许可证；用到的第三方开源软件和字体见安装文件夹里的 THIRD_PARTY_NOTICES.md'
             }</div>
           </div>
           ${isAndroid ? '<button class="btn" type="button" id="about-notices">查看</button>' : ''}

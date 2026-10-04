@@ -1,0 +1,242 @@
+/*
+ * 自定义背景图片（js/effects.js）。有背景图时 <html data-bg="on">：
+ * 图片铺在整个窗口后面，按设置模糊，再盖一层主题底色当遮罩；
+ * 侧边栏、播放栏、内容区换成半透明的主题底色，文字始终清楚。
+ * 这个文件要在所有主题样式后面导入，才能盖过主题里的不透明底色。
+ */
+.app-bg {
+    display: none;
+}
+
+:root[data-bg="on"] body {
+    background: transparent;
+}
+
+:root[data-bg="on"] .app-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* 模糊后边缘会变透明，所以图片往外多铺一圈 */
+:root[data-bg="on"] .app-bg::before {
+    content: "";
+    position: absolute;
+    inset: calc(-2 * var(--bg-blur, 0px));
+    background: var(--bg-image) center / cover no-repeat;
+    filter: blur(var(--bg-blur, 0px));
+}
+
+:root[data-bg="on"] .app-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    opacity: var(--bg-dim, 0.4);
+}
+
+:root[data-bg="on"] .app {
+    position: relative;
+    z-index: 1;
+}
+
+:root[data-bg="on"] .sidebar,
+:root[data-bg="on"] .tabbar {
+    background: color-mix(in srgb, var(--bg-side) 74%, transparent);
+}
+
+:root[data-bg="on"] .player-bar {
+    background: color-mix(in srgb, var(--bg-bar) 80%, transparent);
+}
+
+:root[data-bg="on"] .content {
+    background: color-mix(in srgb, var(--bg) 52%, transparent);
+}
+
+:root[data-bg="on"] .song-head {
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+
+:root[data-bg="on"]:not([data-reduce-blur="true"]) .sidebar,
+:root[data-bg="on"]:not([data-reduce-blur="true"]) .tabbar,
+:root[data-bg="on"]:not([data-reduce-blur="true"]) .player-bar,
+:root[data-bg="on"]:not([data-reduce-blur="true"]) .song-head {
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+}
+
+/* ---- 设置页里的风格卡片、背景预览和滑块 ---- */
+.settings-row.stacked {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.style-picker {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.style-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+    border: 1px solid var(--border);
+    background: transparent;
+    padding: 8px 8px 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.style-card:hover {
+    background: var(--bg-hover);
+}
+
+.style-card[aria-checked="true"] {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.style-swatch {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    margin-bottom: 4px;
+    background: var(--sw-bg);
+    overflow: hidden;
+}
+
+.style-swatch i {
+    position: absolute;
+    left: 10px;
+    top: 13px;
+    width: 46%;
+    height: 4px;
+    background: var(--sw-fg);
+}
+
+.style-swatch b {
+    position: absolute;
+    left: 10px;
+    top: 23px;
+    width: 26%;
+    height: 4px;
+    background: var(--sw-accent);
+}
+
+.style-swatch.plain {
+    background: linear-gradient(90deg, #000 50%, #fff 50%);
+    box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.style-swatch.plain i {
+    background: #fff;
+}
+
+.style-swatch.plain b {
+    left: auto;
+    right: 10px;
+    background: #000;
+}
+
+.style-name {
+    font-size: 14px;
+}
+
+.style-hint {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--fg-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.segmented.inactive {
+    opacity: 0.55;
+}
+
+.bg-current {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.bg-thumb {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 44px;
+    border: 1px solid var(--border);
+    background: var(--bg-hover) center / cover no-repeat;
+    color: var(--fg-faint);
+}
+
+.bg-thumb.has-image .icon {
+    display: none;
+}
+
+.settings-buttons {
+    display: flex;
+    flex: none;
+    gap: 8px;
+}
+
+.slider-field {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 12px;
+}
+
+.slider-field .range {
+    width: 200px;
+}
+
+.slider-field .range:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.slider-value {
+    width: 44px;
+    color: var(--fg-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+/* 手机：风格卡片两列，滑块占满一行 */
+@media (max-width: 719.98px) {
+    .style-picker {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .slider-field {
+        flex: 1 1 100%;
+    }
+
+    .slider-field .range {
+        flex: 1;
+        width: auto;
+    }
+
+    .settings-buttons {
+        flex: 1 1 100%;
+    }
+
+    .settings-buttons .btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

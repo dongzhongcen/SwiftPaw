@@ -205,10 +205,60 @@ public class SwiftPawPlugin extends Plugin {
                     throw new IOException("无法创建临时文件夹");
                 }
                 copy = new File(dir, safeFileName(displayName(uri)));
-                copyLimited(uri, copy);
+                copyLimited(uri, copy, MAX_PLUGIN_SIZE, "插件文件太大了（超过 2 MB）");
                 String info = GoCore.get(getContext()).call("InstallPluginFile", "[" + org.json.JSONObject.quote(copy.getAbsolutePath()) + "]");
                 JSObject ret = new JSObject();
                 ret.put("json", info);
+                call.resolve(ret);
+            } catch (Exception e) {
+                call.reject(e.getMessage() != null ? e.getMessage() : e.toString());
+            } finally {
+                if (copy != null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    copy.delete();
+                }
+            }
+        });
+    }
+
+    // 背景图片最大 20 MB（和 Go 里 core.MaxBackgroundSize 一样）
+    private static final int MAX_BACKGROUND_SIZE = 20 * 1024 * 1024;
+
+    /** 用系统的文件选择器选一张图片作为背景。返回 { json: 保存后的文件名（JSON 字符串）}，取消时返回 {} */
+    @PluginMethod
+    public void pickBackgroundImage(PluginCall call) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] { "image/jpeg", "image/png", "image/webp", "image/gif" });
+        startActivityForResult(call, intent, "onBackgroundPicked");
+    }
+
+    @ActivityCallback
+    private void onBackgroundPicked(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            return;
+        }
+        Intent data = result.getData();
+        if (result.getResultCode() != Activity.RESULT_OK || data == null || data.getData() == null) {
+            call.resolve(); // 用户取消了
+            return;
+        }
+        Uri uri = data.getData();
+        executor.execute(() -> {
+            File copy = null;
+            try {
+                // Go 内核按文件路径读图片，先复制到缓存文件夹；格式由 Go 按文件内容检查，
+                // 检查通过后再复制一份到应用的数据文件夹里，这个临时文件用完就删
+                File dir = new File(getContext().getCacheDir(), "background-import");
+                if (!dir.isDirectory() && !dir.mkdirs()) {
+                    throw new IOException("无法创建临时文件夹");
+                }
+                copy = new File(dir, "picked");
+                copyLimited(uri, copy, MAX_BACKGROUND_SIZE, "图片太大了（超过 20 MB）");
+                String name = GoCore.get(getContext()).call("SetBackgroundImage", "[" + JSONObject.quote(copy.getAbsolutePath()) + "]");
+                JSObject ret = new JSObject();
+                ret.put("json", name);
                 call.resolve(ret);
             } catch (Exception e) {
                 call.reject(e.getMessage() != null ? e.getMessage() : e.toString());
@@ -240,7 +290,7 @@ public class SwiftPawPlugin extends Plugin {
         return base.isEmpty() || base.startsWith(".") ? "plugin" + base : base;
     }
 
-    private void copyLimited(Uri uri, File target) throws IOException {
+    private void copyLimited(Uri uri, File target, int maxSize, String tooLarge) throws IOException {
         try (InputStream in = getContext().getContentResolver().openInputStream(uri); OutputStream out = new FileOutputStream(target)) {
             if (in == null) {
                 throw new IOException("读不了这个文件");
@@ -250,8 +300,8 @@ public class SwiftPawPlugin extends Plugin {
             int n;
             while ((n = in.read(buffer)) != -1) {
                 total += n;
-                if (total > MAX_PLUGIN_SIZE) {
-                    throw new IOException("插件文件太大了（超过 2 MB）");
+                if (total > maxSize) {
+                    throw new IOException(tooLarge);
                 }
                 out.write(buffer, 0, n);
             }

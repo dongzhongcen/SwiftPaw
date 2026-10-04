@@ -262,6 +262,8 @@ function updatePlayButton() {
   button.innerHTML = playing ? icons.pause : icons.play;
   button.title = playing ? '暂停' : '播放';
   button.setAttribute('aria-label', button.title);
+  // 风格主题用它做动画（比如唱片旋转）
+  document.documentElement.dataset.playing = String(playing);
 }
 
 function updateProgress() {
@@ -316,6 +318,8 @@ export function updateTrackView(song) {
   };
   if (url) cover.src = url;
   else cover.removeAttribute('src');
+  // 风格主题可以拿正在播放的封面做背景
+  document.documentElement.style.setProperty('--now-cover', url ? `url("${url.replace(/["\\\n]/g, encodeURIComponent)}")` : 'none');
 }
 
 // coverUrl 返回封面地址：本地歌曲从文件标签里读，在线歌曲用插件给的图片地址（没有时返回空字符串）

@@ -1,0 +1,326 @@
+/*
+ * 风格「霓虹」：雨夜街口的霓虹灯牌。
+ * 深夜蓝的底，正在播放的封面化成一大片模糊的光晕铺在窗口后面，侧边栏和播放栏是磨砂玻璃。
+ * 字体：站酷庆科黄油体（OFL，GB2312 子集 1.7 MB），笔画圆头等粗，像弯出来的灯管；正文用系统字体。
+ * 招牌元素：歌词里唱到的那一句像灯管一样“点亮”（亮起时闪两下），没唱到的是没通电的灯管。
+ */
+@font-face {
+    font-family: "ZCOOL QingKe HuangYou";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../assets/fonts/zcool-qingke-huangyou-gb2312.woff2") format("woff2");
+}
+
+:root[data-theme="neon"] {
+    color-scheme: dark;
+
+    --night: #0b1426;   /* 夜蓝：窗口背景 */
+    --pink: #ff4f9a;    /* 灯管粉：正在播放 */
+    --cyan: #43e8f0;    /* 灯管青：选中和操作 */
+    --glow-white: #eef3ff;
+    --glass: rgba(14, 24, 46, 0.58);
+    --display: "ZCOOL QingKe HuangYou", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+
+    --bg: var(--night);
+    --bg-side: var(--glass);
+    --bg-bar: rgba(10, 18, 36, 0.72);
+    --bg-hover: rgba(120, 160, 255, 0.08);
+    --bg-input: rgba(8, 14, 30, 0.6);
+    --fg: var(--glow-white);
+    --fg-muted: #98a6c6;
+    --fg-faint: #5f6c8c;
+    --border: rgba(140, 170, 255, 0.13);
+    --border-strong: rgba(67, 232, 240, 0.6);
+    --accent: var(--cyan);
+    --accent-fg: #06101f;
+    --track: rgba(140, 170, 255, 0.2);
+    --danger: #ff6b6b;
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(140, 170, 255, 0.12);
+    --backdrop: rgba(5, 10, 22, 0.7);
+}
+
+:root[data-theme="neon"] body {
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+}
+
+/* 窗口后面的光：正在播放的封面放大、模糊，再加两团固定的粉色和青色灯光 */
+:root[data-theme="neon"] body::before {
+    content: "";
+    position: fixed;
+    inset: -15%;
+    z-index: -1;
+    background:
+        radial-gradient(ellipse 40% 35% at 85% 8%, rgba(255, 79, 154, 0.3), transparent 70%),
+        radial-gradient(ellipse 45% 40% at 8% 95%, rgba(67, 232, 240, 0.2), transparent 70%),
+        linear-gradient(rgba(11, 20, 38, 0.72), rgba(11, 20, 38, 0.82)),
+        var(--now-cover, none) center / cover no-repeat;
+    filter: blur(70px) saturate(1.4);
+    transition: background-image 600ms ease;
+}
+
+:root[data-theme="neon"] .sidebar,
+:root[data-theme="neon"] .player-bar,
+:root[data-theme="neon"] .tabbar,
+:root[data-theme="neon"] .song-head {
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
+    backdrop-filter: blur(22px) saturate(1.2);
+}
+
+:root[data-theme="neon"] .song-head {
+    background: rgba(11, 20, 38, 0.6);
+}
+
+:root[data-theme="neon"] .brand-name,
+:root[data-theme="neon"] .view-title,
+:root[data-theme="neon"] .lyrics-title,
+:root[data-theme="neon"] .pb-title,
+:root[data-theme="neon"] .dialog-title,
+:root[data-theme="neon"] .lyric-line {
+    font-family: var(--display);
+}
+
+/* 店招：极拍两个字是一根青色灯管，打开窗口时闪一下再亮稳 */
+:root[data-theme="neon"] .brand-name {
+    color: #e9feff;
+    font-size: 28px;
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 2px #fff, 0 0 10px var(--cyan), 0 0 26px rgba(67, 232, 240, 0.7);
+    animation: tube-on 900ms steps(1, end) 300ms both;
+}
+
+:root[data-theme="neon"] .brand-logo {
+    color: var(--cyan);
+    filter: drop-shadow(0 0 6px rgba(67, 232, 240, 0.8));
+}
+
+:root[data-theme="neon"] .brand-sub {
+    color: var(--pink);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+}
+
+:root[data-theme="neon"] .nav-item {
+    border-radius: 10px;
+}
+
+:root[data-theme="neon"] .nav-item.active {
+    background: rgba(67, 232, 240, 0.1);
+    color: var(--cyan);
+    box-shadow: inset 0 0 0 1px rgba(67, 232, 240, 0.35), 0 0 18px rgba(67, 232, 240, 0.12);
+}
+
+:root[data-theme="neon"] .tab-item.active {
+    color: var(--cyan);
+}
+
+:root[data-theme="neon"] .view-header {
+    border-bottom-color: transparent;
+}
+
+:root[data-theme="neon"] .view-title {
+    font-size: 34px;
+    letter-spacing: 0.04em;
+}
+
+:root[data-theme="neon"] .btn {
+    border-radius: 999px;
+    border-color: var(--border);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="neon"] .btn:hover:not(.primary):not(.danger) {
+    border-color: var(--border-strong);
+    background: rgba(67, 232, 240, 0.1);
+    color: var(--cyan);
+}
+
+:root[data-theme="neon"] .btn.primary {
+    border-color: var(--cyan);
+    background: var(--cyan);
+    color: var(--accent-fg);
+    box-shadow: 0 0 18px rgba(67, 232, 240, 0.45);
+}
+
+:root[data-theme="neon"] .search-box,
+:root[data-theme="neon"] .text-input {
+    border-radius: 999px;
+}
+
+:root[data-theme="neon"] .song-row {
+    border-bottom-color: rgba(140, 170, 255, 0.07);
+    border-radius: 10px;
+}
+
+/* 正在播放的歌：左边一小段粉色灯管 */
+:root[data-theme="neon"] .song-row.active {
+    background: linear-gradient(90deg, rgba(255, 79, 154, 0.16), rgba(255, 79, 154, 0.03) 70%);
+    color: #ffd6e8;
+    box-shadow: inset 3px 0 0 var(--pink), -6px 0 18px -6px var(--pink);
+}
+
+:root[data-theme="neon"] .song-row.active .col-index,
+:root[data-theme="neon"] .song-row.active .row-btn,
+:root[data-theme="neon"] .song-row.active .chip {
+    color: var(--pink);
+}
+
+:root[data-theme="neon"] .song-row.active .col-artist,
+:root[data-theme="neon"] .song-row.active .col-album {
+    color: var(--fg-muted);
+}
+
+:root[data-theme="neon"] .song-row.active .row-btn:hover {
+    background: rgba(255, 79, 154, 0.16);
+    color: var(--pink);
+}
+
+:root[data-theme="neon"] .chip {
+    border-radius: 999px;
+    border-color: rgba(140, 170, 255, 0.22);
+    padding: 0 7px;
+}
+
+:root[data-theme="neon"] .play-btn {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 14px rgba(67, 232, 240, 0.45), inset 0 0 10px rgba(67, 232, 240, 0.25);
+}
+
+:root[data-theme="neon"] .play-btn:hover:not(:disabled) {
+    background: var(--cyan);
+    color: var(--accent-fg);
+}
+
+:root[data-theme="neon"] #pb-fav.on,
+:root[data-theme="neon"] .row-btn.on {
+    color: var(--pink);
+    filter: drop-shadow(0 0 5px rgba(255, 79, 154, 0.7));
+}
+
+:root[data-theme="neon"] .range::-webkit-slider-runnable-track {
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--pink) var(--fill), var(--track) var(--fill));
+    box-shadow: 0 0 8px rgba(255, 79, 154, 0.35);
+}
+
+:root[data-theme="neon"] .range.volume::-webkit-slider-runnable-track {
+    background: linear-gradient(to right, var(--cyan) var(--fill), var(--track) var(--fill));
+    box-shadow: none;
+}
+
+:root[data-theme="neon"] .range::-webkit-slider-thumb {
+    background: #fff;
+    box-shadow: 0 0 8px var(--pink);
+}
+
+:root[data-theme="neon"] .segmented,
+:root[data-theme="neon"] .dialog {
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* 减少模糊效果：不用磨砂玻璃，面板换成几乎不透明的底色；背后的光只留两团固定的灯光，不放封面 */
+:root[data-theme="neon"][data-reduce-blur="true"] {
+    --bg-side: rgba(12, 21, 41, 0.96);
+    --bg-bar: rgba(10, 18, 36, 0.97);
+}
+
+:root[data-theme="neon"][data-reduce-blur="true"] .sidebar,
+:root[data-theme="neon"][data-reduce-blur="true"] .player-bar,
+:root[data-theme="neon"][data-reduce-blur="true"] .tabbar,
+:root[data-theme="neon"][data-reduce-blur="true"] .song-head {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+:root[data-theme="neon"][data-reduce-blur="true"] .song-head {
+    background: rgba(11, 20, 38, 0.97);
+}
+
+:root[data-theme="neon"][data-reduce-blur="true"] body::before {
+    inset: 0;
+    background:
+        radial-gradient(ellipse 45% 40% at 85% 6%, rgba(255, 79, 154, 0.2), transparent 70%),
+        radial-gradient(ellipse 50% 45% at 6% 96%, rgba(67, 232, 240, 0.14), transparent 70%);
+    filter: none;
+}
+
+/* 用了自定义背景图片时，背景图片代替封面的光晕 */
+:root[data-theme="neon"][data-bg="on"] body::before {
+    display: none;
+}
+
+/* ---- 桌面布局：歌词页 ---- */
+@media (min-width: 860px) and (min-height: 500.02px), (min-width: 860px) and (orientation: portrait) {
+    :root[data-theme="neon"] .pb-cover {
+        border-radius: 8px;
+        border-color: rgba(140, 170, 255, 0.2);
+    }
+
+    /* 封面像橱窗里的灯箱，下面是湿地面上的倒影 */
+    :root[data-theme="neon"] .lyrics-cover {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 50px rgba(255, 79, 154, 0.3), 0 30px 60px rgba(0, 0, 0, 0.5);
+        -webkit-box-reflect: below 10px linear-gradient(transparent 80%, rgba(255, 255, 255, 0.24));
+    }
+
+    :root[data-theme="neon"] .lyrics-side {
+        justify-content: center;
+        padding-bottom: 20px;
+    }
+
+    :root[data-theme="neon"] .lyrics-title {
+        margin-top: 64px;
+        font-size: 30px;
+    }
+
+    :root[data-theme="neon"] .lyric-line {
+        color: rgba(200, 214, 245, 0.3);
+        font-size: 22px;
+        letter-spacing: 0.04em;
+        transition: color 200ms ease, transform 300ms ease;
+    }
+
+    :root[data-theme="neon"] .lyric-line:hover {
+        color: rgba(200, 214, 245, 0.6);
+    }
+
+    /* 招牌：唱到的这一句通电，闪两下亮起来 */
+    :root[data-theme="neon"] .lyric-line.active {
+        color: #ffe6f1;
+        transform: scale(1.14);
+        text-shadow:
+            0 0 2px #fff,
+            0 0 8px var(--pink),
+            0 0 22px var(--pink),
+            0 0 48px rgba(255, 79, 154, 0.55);
+        animation: tube-on 520ms steps(1, end);
+    }
+}
+
+@keyframes tube-on {
+    0% {
+        opacity: 0.25;
+    }
+    18% {
+        opacity: 1;
+    }
+    30% {
+        opacity: 0.4;
+    }
+    46%,
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root[data-theme="neon"] .brand-name,
+    :root[data-theme="neon"] .lyric-line.active {
+        animation: none;
+    }
+}

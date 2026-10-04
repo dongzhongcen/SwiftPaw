@@ -9,6 +9,7 @@ const tab = (name, icon, label) => `
   <button class="tab-item" type="button" data-tab="${name}">${icon}<span class="tab-label">${label}</span></button>`;
 
 export const layoutHtml = `
+  <div class="app-bg" aria-hidden="true"></div>
   <div class="app">
     <aside class="sidebar">
       <div class="brand">

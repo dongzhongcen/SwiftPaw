@@ -53,6 +53,8 @@ type Core struct {
 	store *store.Store // 歌单、收藏、最近播放（SQLite）
 	dbErr error        // 数据库打不开时记下原因，调用歌单相关方法时返回
 
+	bgMu sync.Mutex // 背景图片的复制和删除一次只做一个
+
 	plugins *plugin.Manager // 插件管理器；没有数据文件夹时为 nil
 	stream  *stream.Proxy   // 桌面版在线歌曲的播放代理，前端用 /stream?id=... 播放
 }

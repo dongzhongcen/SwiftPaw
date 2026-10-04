@@ -106,6 +106,10 @@ export function ReloadPlugins() {
   return window['go']['main']['App']['ReloadPlugins']();
 }
 
+export function RemoveBackgroundImage() {
+  return window['go']['main']['App']['RemoveBackgroundImage']();
+}
+
 export function RemoveFromPlaylist(arg1, arg2) {
   return window['go']['main']['App']['RemoveFromPlaylist'](arg1, arg2);
 }
@@ -128,6 +132,10 @@ export function ScanMusic(arg1) {
 
 export function SearchOnline(arg1, arg2, arg3) {
   return window['go']['main']['App']['SearchOnline'](arg1, arg2, arg3);
+}
+
+export function SelectBackgroundImage() {
+  return window['go']['main']['App']['SelectBackgroundImage']();
 }
 
 export function SelectFolder() {

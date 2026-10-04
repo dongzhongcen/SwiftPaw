@@ -25,7 +25,7 @@ func main() {
 		MinHeight: winstate.MinHeight,
 		AssetServer: &assetserver.Options{
 			Assets:  assets,
-			Handler: NewMusicHandler(app.core.Stream()),
+			Handler: NewMusicHandler(app.core.Stream(), app.core.BackgroundHandler()),
 		},
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 1},
 		OnStartup:        app.startup,

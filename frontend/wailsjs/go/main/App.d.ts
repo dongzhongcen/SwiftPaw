@@ -59,6 +59,8 @@ export function RecordPlay(arg1:music.Song):Promise<void>;
 
 export function ReloadPlugins():Promise<Array<plugin.Info>>;
 
+export function RemoveBackgroundImage():Promise<void>;
+
 export function RemoveFromPlaylist(arg1:number,arg2:string):Promise<void>;
 
 export function RenamePlaylist(arg1:number,arg2:string):Promise<void>;
@@ -70,6 +72,8 @@ export function SaveConfig(arg1:core.AppConfig):Promise<void>;
 export function ScanMusic(arg1:string):Promise<Array<music.Song>>;
 
 export function SearchOnline(arg1:string,arg2:string,arg3:number):Promise<plugin.SearchResult>;
+
+export function SelectBackgroundImage():Promise<string>;
 
 export function SelectFolder():Promise<string>;
 
