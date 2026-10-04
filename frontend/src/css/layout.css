@@ -185,3 +185,60 @@
 .empty-state .btn {
     margin-top: 10px;
 }
+
+.sidebar-footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.view-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 页面头部的搜索框 */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 220px;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    padding: 0 10px;
+    color: var(--fg-faint);
+}
+
+.search-box[hidden] {
+    display: none;
+}
+
+.search-box:focus-within {
+    border-color: var(--fg);
+    color: var(--fg);
+}
+
+.search-box .icon {
+    width: 15px;
+    height: 15px;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    user-select: text;
+}
+
+.search-input::-webkit-search-cancel-button {
+    filter: grayscale(1);
+}
+
+.view-body.custom {
+    padding: 0;
+}

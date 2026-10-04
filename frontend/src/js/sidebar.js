@@ -7,8 +7,8 @@ import { state, on } from './state.js';
 import { $, escapeHtml, guard } from './util.js';
 
 export function initSidebar() {
-  $('nav').addEventListener('click', onNavClick);
-  $('playlist-nav').addEventListener('click', onNavClick);
+  // 所有带 data-view 的导航按钮（包括歌单和底部的设置）都在侧边栏里，统一监听
+  document.querySelector('.sidebar').addEventListener('click', onNavClick);
   $('new-playlist').addEventListener('click', guard(async () => {
     const playlist = await createPlaylist();
     if (playlist) showView('playlist:' + playlist.id);
