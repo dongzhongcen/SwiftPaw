@@ -116,6 +116,17 @@ SwiftPaw/
 2. 点一首歌开始播放；点歌曲后面的红心收藏，或者加入歌单
 3. 想在线搜歌：打开“插件”页 → “从文件安装”，选择 [`examples/plugins/archive-org.js`](examples/plugins/archive-org.js)，然后到“在线搜索”页搜索
 
+### 使用 Jamendo 插件
+
+[`examples/plugins/jamendo.js`](examples/plugins/jamendo.js) 通过 Jamendo 官方 API 搜索和播放 Jamendo 上的音乐，支持搜索歌曲、选择音质播放和歌词（有歌词的歌曲才有）。需要你自己申请一个 Client ID：
+
+1. 到 [devportal.jamendo.com](https://devportal.jamendo.com) 注册并登录，创建一个应用（app）
+2. 复制这个应用的 Client ID
+3. 打开“插件”页 → “从文件安装”，选择 `examples/plugins/jamendo.js`；也可以“从网址安装”，粘贴 `https://raw.githubusercontent.com/dongzhongcen/SwiftPaw/main/examples/plugins/jamendo.js`
+4. 点 Jamendo 插件的「设置」，把 Client ID 粘贴到「Client ID」里保存，然后到“在线搜索”页搜索
+
+没填 Client ID 或者填错时，插件会提示你到「设置」里检查。Jamendo 上的音乐由音乐人以知识共享（Creative Commons）许可证发布，每首歌的许可证可能不同；使用时请遵守 [Jamendo 的 API 使用条款](https://devportal.jamendo.com/api_terms_of_use)和对应的许可证。无损音质只在音乐人允许下载的歌曲上提供。
+
 ### 从源码运行
 
 需要先装好：
@@ -187,4 +198,4 @@ module.exports = {
 
 本软件不提供任何音乐源，也不内置任何第三方平台插件；插件由用户自行安装，其内容及合法性由用户和插件作者负责；请遵守当地法律及各平台服务条款，仅用于个人学习和合法用途。
 
-仓库里的示例插件 `examples/plugins/archive-org.js` 是本项目自己写的，只搜索 Internet Archive 上的公有领域音频。
+仓库里的示例插件 `examples/plugins/archive-org.js` 和 `examples/plugins/jamendo.js` 是本项目自己写的：前者只搜索 Internet Archive 上的公有领域音频；后者通过 Jamendo 官方 API 访问以知识共享许可证发布的音乐，需要用户自己申请 Client ID 并遵守 Jamendo 的 API 使用条款。
