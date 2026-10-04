@@ -1,5 +1,7 @@
 # 极拍 SwiftPaw
 
+**简体中文** | [English](README.en.md)
+
 [![测试](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/test.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/test.yml)
 [![构建 Windows 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml)
 [![最新版本](https://img.shields.io/github/v/release/dongzhongcen/SwiftPaw?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/dongzhongcen/SwiftPaw/releases)
