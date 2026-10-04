@@ -1,0 +1,879 @@
+/*
+ * 手机和平板的样式。桌面布局（宽度 ≥ 860）完全不受影响。
+ * 布局的划分见 js/responsive.js：
+ *   手机布局：宽度 < 860，或者横屏而且高度 ≤ 500
+ *   其中竖屏、宽度 < 720 时标签栏在底部，其他情况标签栏在左边
+ */
+
+/* 刘海、状态栏、手势条占掉的地方。Android 版由 Capacitor 写进 --safe-area-inset-*，浏览器里用 env() */
+:root {
+    --sa-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+    --sa-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+    --sa-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+    --sa-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+}
+
+/* 只在手机布局里出现的元素，桌面布局下隐藏 */
+.tabbar,
+.pb-sheet-head,
+.view-back[hidden] {
+    display: none;
+}
+
+/* ================= 触摸屏（不管是哪种布局） ================= */
+@media (pointer: coarse) {
+    html,
+    body {
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior: none;
+    }
+
+    /* 手指点的按钮要够大 */
+    .btn {
+        height: 40px;
+    }
+
+    .icon-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .icon-btn.small {
+        width: 40px;
+        height: 40px;
+    }
+
+    .icon-btn .icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .icon-btn.small .icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .text-input,
+    .select {
+        height: 42px;
+    }
+
+    .nav-item {
+        height: 44px;
+    }
+
+    .segmented button {
+        height: 40px;
+    }
+
+    .pick-item {
+        height: 48px;
+    }
+
+    /* 没有鼠标悬停，行尾按钮一直显示 */
+    .row-btn {
+        visibility: visible;
+    }
+
+    /* 滑块的圆点一直显示，也画大一点，方便拖 */
+    .range {
+        height: 28px;
+    }
+
+    .range::-webkit-slider-runnable-track {
+        height: 4px;
+    }
+
+    .range::-webkit-slider-thumb {
+        width: 16px;
+        height: 16px;
+        margin-top: -6px;
+        opacity: 1;
+    }
+
+    .switch-track {
+        width: 46px;
+        height: 26px;
+    }
+
+    .switch-track::after {
+        top: 4px;
+        left: 4px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .switch input:checked + .switch-track::after {
+        transform: translateX(20px);
+    }
+}
+
+/* 触摸屏上点过的按钮会一直停在“悬停”状态，把悬停效果去掉，换成按下时的效果 */
+@media (hover: none) {
+    .btn:hover:not(.primary):not(.danger) {
+        background-color: transparent;
+        color: inherit;
+    }
+
+    .btn.primary:hover {
+        background-color: var(--accent);
+        color: var(--accent-fg);
+    }
+
+    .btn.danger:hover:not(.primary) {
+        background-color: transparent;
+        color: var(--danger);
+    }
+
+    .icon-btn:hover:not(:disabled),
+    .nav-item:hover:not(.active),
+    .song-row:hover:not(.active),
+    .pick-item:hover {
+        background-color: transparent;
+    }
+
+    .icon-btn:hover:not(:disabled):not(.on) {
+        color: var(--fg-muted);
+    }
+
+    .play-btn:hover:not(:disabled) {
+        background: transparent;
+        color: var(--fg);
+    }
+
+    .btn:active,
+    .pick-item:active,
+    .song-row:active:not(.active),
+    .mine-item:active,
+    .tab-item:active {
+        background-color: var(--bg-hover);
+    }
+
+    .icon-btn:active:not(:disabled) {
+        background-color: var(--bg-hover);
+        color: var(--fg);
+    }
+}
+
+/* ================= 手机布局 ================= */
+@media (max-width: 859.98px), (max-height: 500px) and (orientation: landscape) {
+    /* 标签栏在左边（平板竖屏、手机横屏），竖屏手机在下面的 @media 里改成底部 */
+    .app {
+        grid-template-columns: calc(72px + var(--sa-left)) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "tabs main"
+            "tabs bar";
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .tabbar {
+        grid-area: tabs;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        border-right: 1px solid var(--border);
+        background: var(--bg-side);
+        padding: calc(8px + var(--sa-top)) 0 calc(8px + var(--sa-bottom)) var(--sa-left);
+    }
+
+    .tab-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-width: 0;
+        height: 60px;
+        border: none;
+        background: transparent;
+        padding: 0;
+        color: var(--fg-faint);
+        cursor: pointer;
+    }
+
+    .tab-item .icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .tab-label {
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+
+    .tab-item.active {
+        color: var(--fg);
+    }
+
+    /* 选中的标签图标反色显示，和桌面版侧边栏的高亮风格一样 */
+    .tab-item.active .icon {
+        box-sizing: content-box;
+        padding: 3px 14px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-fg);
+    }
+
+    /* ---- 页面头部 ----
+     * 第一行：返回按钮、标题、页面按钮；第二行：搜索框。
+     * 没有搜索框的页面（设置、插件等），页面按钮放到第二行。 */
+    .view-header {
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 8px;
+        padding: calc(14px + var(--sa-top)) calc(16px + var(--sa-right)) 12px 16px;
+    }
+
+    .view-tools {
+        display: contents;
+    }
+
+    .view-back {
+        flex: none;
+        margin-left: -10px;
+        color: var(--fg);
+    }
+
+    .view-heading {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .view-title {
+        font-size: 22px;
+    }
+
+    .view-subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+    }
+
+    .search-box {
+        order: 2;
+        flex: 1 1 100%;
+        width: auto;
+        min-width: 0;
+        height: 40px;
+    }
+
+    .search-input {
+        font-size: 16px; /* 小于 16px 时有的手机一点输入框就会放大页面 */
+    }
+
+    /* 按钮多了就横着滑，不换行把头部撑得很高 */
+    .view-actions {
+        order: 1;
+        flex: 0 1 auto;
+        flex-wrap: nowrap;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .view-header:not(.searchable) .view-actions {
+        order: 2;
+        flex: 1 1 100%;
+    }
+
+    .view-actions:empty {
+        display: none;
+    }
+
+    .view-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .view-actions .btn {
+        flex: none;
+        height: 40px;
+        padding: 0 12px;
+    }
+
+    .view-body {
+        padding: 0 calc(8px + var(--sa-right)) 12px 8px;
+    }
+
+    /* ---- 迷你播放条 ---- */
+    .player-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: calc(64px + var(--sa-bottom));
+        padding: 0 calc(6px + var(--sa-right)) var(--sa-bottom) 10px;
+    }
+
+    .pb-track {
+        flex: 1;
+        gap: 10px;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .pb-cover {
+        width: 44px;
+        height: 44px;
+    }
+
+    .pb-artist {
+        margin-top: 2px;
+    }
+
+    #pb-fav,
+    #mode,
+    #prev,
+    .pb-mode-label,
+    .pb-right,
+    .pb-time {
+        display: none;
+    }
+
+    .pb-center {
+        flex: none;
+    }
+
+    .pb-controls {
+        gap: 2px;
+    }
+
+    .play-btn {
+        width: 42px;
+        height: 42px;
+    }
+
+    /* 进度条缩成播放条顶上的一条细线，只用来看，不能拖 */
+    .pb-progress {
+        position: absolute;
+        top: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        pointer-events: none;
+    }
+
+    .pb-progress .range {
+        height: 2px;
+    }
+
+    .pb-progress .range::-webkit-slider-runnable-track {
+        height: 2px;
+    }
+
+    .pb-progress .range::-webkit-slider-thumb {
+        opacity: 0;
+    }
+
+    /* ---- 全屏播放页 ---- */
+    .app.player-open .player-bar {
+        position: fixed;
+        inset: 0;
+        z-index: 15;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+        grid-template-areas:
+            "head"
+            "cover"
+            "meta"
+            "progress"
+            "controls";
+        align-items: center;
+        gap: 0;
+        height: auto;
+        border: none;
+        background: var(--bg);
+        padding: calc(6px + var(--sa-top)) calc(20px + var(--sa-right)) calc(24px + var(--sa-bottom)) calc(20px + var(--sa-left));
+        animation: sheet-up 220ms ease;
+    }
+
+    .app.player-open .pb-track,
+    .app.player-open .pb-center {
+        display: contents;
+    }
+
+    .app.player-open .pb-sheet-head {
+        grid-area: head;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 52px;
+    }
+
+    .pb-sheet-head #pb-collapse {
+        margin-left: -10px;
+        color: var(--fg);
+    }
+
+    .pb-sheet-title {
+        flex: 1;
+        color: var(--fg-muted);
+        font-size: 13px;
+        letter-spacing: 0.16em;
+        text-align: center;
+    }
+
+    .app.player-open .pb-cover {
+        grid-area: cover;
+        justify-self: center;
+        width: min(100%, 46vh, 420px);
+        height: auto;
+        aspect-ratio: 1;
+        margin: 12px 0 20px;
+    }
+
+    .app.player-open .pb-cover-fallback .icon {
+        width: 30%;
+        height: 30%;
+    }
+
+    .app.player-open .pb-meta {
+        grid-area: meta;
+        padding-right: 52px;
+    }
+
+    .app.player-open .pb-title {
+        font-size: 20px;
+    }
+
+    .app.player-open .pb-artist {
+        margin-top: 6px;
+        font-size: 14px;
+    }
+
+    .app.player-open #pb-fav {
+        grid-area: meta;
+        justify-self: end;
+        display: inline-flex;
+        margin-right: -10px;
+    }
+
+    .app.player-open .pb-progress {
+        grid-area: progress;
+        position: static;
+        height: auto;
+        margin-top: 18px;
+        pointer-events: auto;
+    }
+
+    .app.player-open .pb-time {
+        display: block;
+        width: 44px;
+        font-size: 12px;
+    }
+
+    .app.player-open .pb-time:first-child {
+        text-align: left;
+    }
+
+    .app.player-open .pb-time:last-child {
+        text-align: right;
+    }
+
+    .app.player-open .pb-progress .range {
+        height: 28px;
+    }
+
+    .app.player-open .pb-progress .range::-webkit-slider-runnable-track {
+        height: 4px;
+    }
+
+    .app.player-open .pb-progress .range::-webkit-slider-thumb {
+        opacity: 1;
+    }
+
+    .app.player-open .pb-controls {
+        grid-area: controls;
+        justify-content: space-between;
+        margin-top: 12px;
+    }
+
+    .app.player-open #mode,
+    .app.player-open #prev {
+        display: inline-flex;
+    }
+
+    .app.player-open .pb-controls .icon-btn {
+        width: 56px;
+        height: 56px;
+        color: var(--fg);
+    }
+
+    .app.player-open .pb-controls .icon-btn .icon {
+        width: 26px;
+        height: 26px;
+    }
+
+    .app.player-open #mode .icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .app.player-open .pb-controls .play-btn {
+        width: 72px;
+        height: 72px;
+    }
+
+    .app.player-open .pb-controls .play-btn .icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    /* 让播放模式按钮在左边、右边空出同样宽的位置，播放按钮正好在中间 */
+    .app.player-open .pb-controls::after {
+        content: "";
+        width: 56px;
+    }
+
+    /* ---- 列表、各个页面 ---- */
+    .song-row {
+        height: 52px;
+    }
+
+    .lyrics-view {
+        gap: 24px;
+        padding: 0 calc(20px + var(--sa-right)) 0 20px;
+    }
+
+    /* 当前这一行会放大 1.12 倍，右边留出地方，免得放大后被切掉 */
+    .lyric-line {
+        padding-right: 12%;
+    }
+
+    .settings,
+    .plugin-list {
+        padding: 4px calc(16px + var(--sa-right)) 24px 16px;
+    }
+
+    .online-form {
+        flex-wrap: wrap;
+        padding: 12px calc(16px + var(--sa-right)) 8px 16px;
+    }
+
+    .online-results {
+        padding: 0 calc(8px + var(--sa-right)) 12px 8px;
+    }
+
+    /* “我的”页面 */
+    .mine {
+        max-width: 760px;
+        padding: 8px calc(16px + var(--sa-right)) 24px 16px;
+    }
+
+    .mine-heading {
+        margin: 24px 0 6px;
+        color: var(--fg-faint);
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0.16em;
+    }
+
+    .mine-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        height: 56px;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        background: transparent;
+        padding: 0 4px;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .mine-item .icon {
+        color: var(--fg-muted);
+    }
+
+    .mine-label {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 15px;
+    }
+
+    .mine-count {
+        color: var(--fg-faint);
+        font-size: 13px;
+    }
+
+    .mine-empty {
+        margin: 12px 4px;
+        color: var(--fg-faint);
+        font-size: 13px;
+    }
+
+    /* 提示条放在播放条上面，左右撑满 */
+    .toast {
+        left: calc(16px + var(--sa-left));
+        right: calc(16px + var(--sa-right));
+        bottom: calc(80px + var(--sa-bottom));
+        max-width: none;
+        text-align: center;
+    }
+
+    .app.player-open ~ .toast {
+        bottom: calc(24px + var(--sa-bottom));
+    }
+
+    /* 对话框 */
+    .dialog {
+        width: min(440px, calc(100vw - 32px - var(--sa-left) - var(--sa-right)));
+        max-height: calc(100vh - 32px - var(--sa-top) - var(--sa-bottom));
+        overflow-y: auto;
+    }
+
+    .dialog-body {
+        padding: 20px;
+    }
+
+    .dialog-buttons .btn {
+        height: 42px;
+        padding: 0 18px;
+    }
+
+    .text-input {
+        font-size: 16px;
+    }
+
+    .pick-list {
+        max-height: 50vh;
+    }
+}
+
+@keyframes sheet-up {
+    from {
+        transform: translateY(24px);
+        opacity: 0;
+    }
+}
+
+/* ---- 竖屏手机：标签栏在底部 ---- */
+@media (max-width: 719.98px) and (orientation: portrait) {
+    .app {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto auto;
+        grid-template-areas:
+            "main"
+            "bar"
+            "tabs";
+    }
+
+    .tabbar {
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 0;
+        border-top: 1px solid var(--border);
+        border-right: none;
+        padding: 0 var(--sa-right) var(--sa-bottom) var(--sa-left);
+    }
+
+    .tab-item {
+        flex: 1;
+        height: 58px;
+    }
+
+    .view-header {
+        padding-left: calc(16px + var(--sa-left));
+    }
+
+    .view-body {
+        padding-left: calc(8px + var(--sa-left));
+    }
+
+    /* 播放条下面就是标签栏，不用再给手势条留位置 */
+    .player-bar {
+        height: 64px;
+        padding: 0 calc(6px + var(--sa-right)) 0 calc(10px + var(--sa-left));
+    }
+
+    .toast {
+        bottom: calc(136px + var(--sa-bottom));
+    }
+
+    /* 全屏播放页盖住标签栏 */
+    .app.player-open .player-bar {
+        height: auto;
+    }
+}
+
+/* ---- 手机横屏：全屏播放页改成左边封面、右边信息和按钮 ---- */
+@media (max-height: 500px) and (orientation: landscape) {
+    .app.player-open .player-bar {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+        grid-template-areas:
+            "cover head"
+            "cover ."
+            "cover meta"
+            "cover progress"
+            "cover controls"
+            "cover .";
+        column-gap: 32px;
+        padding-bottom: calc(12px + var(--sa-bottom));
+    }
+
+    .app.player-open .pb-cover {
+        width: min(42vw, calc(100vh - 48px - var(--sa-top) - var(--sa-bottom)));
+        margin: 0;
+    }
+
+    .app.player-open .pb-controls .play-btn {
+        width: 60px;
+        height: 60px;
+    }
+
+    .lyrics-side {
+        display: none;
+    }
+
+    .lyrics-view {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* 横屏时高度很宝贵：标题、搜索框、按钮都放在一行 */
+    .view-header {
+        flex-wrap: nowrap;
+        padding-top: calc(8px + var(--sa-top));
+        padding-bottom: 8px;
+    }
+
+    .view-subtitle {
+        display: none;
+    }
+
+    .search-box,
+    .view-header:not(.searchable) .view-actions {
+        order: 1;
+        flex: 0 1 260px;
+    }
+
+    .view-header:not(.searchable) .view-actions {
+        flex: 0 1 auto;
+    }
+
+    .player-bar {
+        height: calc(56px + var(--sa-bottom));
+    }
+
+    .pb-cover {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* ================= 窄屏：歌曲列表改成两行（标题 / 歌手），专辑不显示 ================= */
+@media (max-width: 719.98px) {
+    /* 列表页的按钮和标题在同一行，地方不够，只显示图标 */
+    .view-header.searchable .view-actions .btn {
+        justify-content: center;
+        width: 40px;
+        padding: 0;
+    }
+
+    .view-header.searchable .view-actions .btn span {
+        display: none;
+    }
+
+    .view-header.searchable .view-actions .btn .icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .song-head {
+        display: none;
+    }
+
+    .song-row {
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "index title actions"
+            "index artist actions";
+        align-content: center;
+        column-gap: 10px;
+        row-gap: 3px;
+        height: 60px;
+        padding: 0 0 0 8px;
+    }
+
+    .song-row .col-index {
+        grid-area: index;
+    }
+
+    .song-row .col-title {
+        grid-area: title;
+        font-size: 15px;
+    }
+
+    .song-row .col-artist {
+        grid-area: artist;
+        font-size: 12px;
+    }
+
+    .song-row .col-album {
+        display: none;
+    }
+
+    .song-row .col-actions {
+        grid-area: actions;
+    }
+
+    .group-label {
+        padding: 16px 8px 6px;
+    }
+
+    .online-form .select {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .settings-row {
+        flex-wrap: wrap;
+        gap: 10px 16px;
+    }
+
+    .settings-row .segmented {
+        flex: 1 1 100%;
+    }
+
+    .settings-row .segmented button {
+        flex: 1;
+        padding: 0 8px;
+    }
+
+    .plugin-card {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .plugin-main {
+        flex: 1 1 100%;
+    }
+
+    .plugin-actions {
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+    }
+
+    .lyrics-view {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lyrics-side {
+        display: none;
+    }
+
+    .lyric-line {
+        font-size: 17px;
+    }
+}

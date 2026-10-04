@@ -184,6 +184,7 @@ export async function renderView(keepScroll = true) {
   const scrollTop = body.scrollTop;
   const searchable = !data.render && data.searchable !== false;
   $('search-box').hidden = !searchable;
+  document.querySelector('.view-header').classList.toggle('searchable', searchable);
   body.classList.toggle('custom', !!data.render);
 
   if (data.render) {
@@ -230,6 +231,7 @@ function renderActions(actions) {
     button.type = 'button';
     button.className = 'btn' + (action.primary ? ' primary' : '') + (action.danger ? ' danger' : '');
     button.innerHTML = `${action.icon || ''}<span>${escapeHtml(action.label)}</span>`;
+    button.setAttribute('aria-label', action.label); // 手机上按钮可能只显示图标
     button.addEventListener('click', guard(action.run));
     box.appendChild(button);
   });

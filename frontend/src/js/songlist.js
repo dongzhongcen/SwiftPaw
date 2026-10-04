@@ -4,6 +4,8 @@
 import { icons } from './icons.js';
 import { isFavorite, toggleFavorite, addNext, addToPlaylist } from './actions.js';
 import { loadedSongKey } from './player.js';
+import { pickDialog } from './dialog.js';
+import { narrowScreen } from './responsive.js';
 import { escapeHtml, displayName, songKey, isOnline, guard } from './util.js';
 
 // 行尾可以出现的操作按钮
@@ -78,7 +80,14 @@ function createRow(item, number, actions, options) {
     <span class="col-actions"></span>`;
 
   const cell = row.querySelector('.col-actions');
-  actions.forEach((name) => {
+  // 屏幕窄的时候行尾只留红心，其他操作收进“更多”菜单
+  let shown = actions;
+  if (narrowScreen.matches && actions.length > 2) {
+    shown = actions.filter((name) => name === 'favorite');
+    const rest = actions.filter((name) => name !== 'favorite');
+    cell.appendChild(createMoreButton(song, item, rest, options));
+  }
+  shown.forEach((name) => {
     const action = rowActions[name](song, item, options);
     const button = document.createElement('button');
     button.type = 'button';
@@ -91,11 +100,32 @@ function createRow(item, number, actions, options) {
       event.stopPropagation(); // 不要触发整行的“播放”
       await action.run();
     }));
-    cell.appendChild(button);
+    cell.insertBefore(button, cell.querySelector('[data-action=more]'));
   });
 
   row.addEventListener('click', guard(() => options.onPlay?.(item)));
   return row;
+}
+
+// createMoreButton 生成“更多”按钮，点开后用选择框列出其余的操作
+function createMoreButton(song, item, names, options) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'icon-btn small row-btn more-btn';
+  button.dataset.action = 'more';
+  button.title = '更多操作';
+  button.setAttribute('aria-label', button.title);
+  button.innerHTML = icons.more;
+  button.addEventListener('click', guard(async (event) => {
+    event.stopPropagation();
+    const items = names.map((name) => {
+      const action = rowActions[name](song, item, options);
+      return { value: action, label: action.title };
+    });
+    const action = await pickDialog({ title: displayName(song), items });
+    if (action) await action.run();
+  }));
+  return button;
 }
 
 // markActive 高亮正在播放的那一行（按 key 比较，因为不同列表里顺序不一样）
