@@ -33,6 +33,12 @@ const overrides = {
     const result = await nativeCall('scanLibrary');
     return JSON.parse(result.json);
   },
+  // “从文件安装插件”用系统的文件选择器；取消时和桌面版一样返回 id 为空的结果
+  InstallPluginFromFile: async () => {
+    if (!(await callCore('PluginsAvailable', []))) return callCore('InstallPluginFile', ['']);
+    const result = await nativeCall('installPluginFile');
+    return result.json ? JSON.parse(result.json) : { id: '' };
+  },
 };
 
 // overrideMethod 让某个方法在 Android 上换一种做法（比如选择文件夹要用系统的选择器）

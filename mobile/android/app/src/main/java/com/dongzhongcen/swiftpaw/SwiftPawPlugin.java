@@ -1,11 +1,15 @@
 package com.dongzhongcen.swiftpaw;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.OpenableColumns;
+import androidx.activity.result.ActivityResult;
 import androidx.activity.OnBackPressedCallback;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
@@ -14,10 +18,18 @@ import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.json.JSONArray;
@@ -157,6 +169,122 @@ public class SwiftPawPlugin extends Plugin {
                 call.reject("扫描失败：" + e.getMessage());
             }
         });
+    }
+
+    // ---- 插件 ----
+
+    // 插件文件最大 2 MB（和 Go 里读插件文件的上限一样）
+    private static final int MAX_PLUGIN_SIZE = 2 * 1024 * 1024;
+
+    /** 用系统的文件选择器选一个 .js 插件并安装。返回 { json: 插件信息 }，取消时返回 {} */
+    @PluginMethod
+    public void installPluginFile(PluginCall call) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*"); // .js 在不同手机上的 MIME 类型不一样，不按类型过滤，安装时再检查扩展名
+        startActivityForResult(call, intent, "onPluginFilePicked");
+    }
+
+    @ActivityCallback
+    private void onPluginFilePicked(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            return;
+        }
+        Intent data = result.getData();
+        if (result.getResultCode() != Activity.RESULT_OK || data == null || data.getData() == null) {
+            call.resolve(); // 用户取消了
+            return;
+        }
+        Uri uri = data.getData();
+        executor.execute(() -> {
+            File copy = null;
+            try {
+                // Go 内核按文件路径安装，插件的 id 是文件名，所以先用原来的文件名复制到缓存文件夹
+                File dir = new File(getContext().getCacheDir(), "plugin-import");
+                if (!dir.isDirectory() && !dir.mkdirs()) {
+                    throw new IOException("无法创建临时文件夹");
+                }
+                copy = new File(dir, safeFileName(displayName(uri)));
+                copyLimited(uri, copy);
+                String info = GoCore.get(getContext()).call("InstallPluginFile", "[" + org.json.JSONObject.quote(copy.getAbsolutePath()) + "]");
+                JSObject ret = new JSObject();
+                ret.put("json", info);
+                call.resolve(ret);
+            } catch (Exception e) {
+                call.reject(e.getMessage() != null ? e.getMessage() : e.toString());
+            } finally {
+                if (copy != null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    copy.delete();
+                }
+            }
+        });
+    }
+
+    private String displayName(Uri uri) {
+        try (Cursor cursor = getContext().getContentResolver().query(uri, new String[] { OpenableColumns.DISPLAY_NAME }, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                String name = cursor.getString(0);
+                if (name != null && !name.isEmpty()) {
+                    return name;
+                }
+            }
+        }
+        String last = uri.getLastPathSegment();
+        return last != null ? last : "plugin.js";
+    }
+
+    // 文件名里只留下安全的部分（不能带路径）
+    private static String safeFileName(String name) {
+        String base = name.substring(name.lastIndexOf('/') + 1).replace('\\', '_').trim();
+        return base.isEmpty() || base.startsWith(".") ? "plugin" + base : base;
+    }
+
+    private void copyLimited(Uri uri, File target) throws IOException {
+        try (InputStream in = getContext().getContentResolver().openInputStream(uri); OutputStream out = new FileOutputStream(target)) {
+            if (in == null) {
+                throw new IOException("读不了这个文件");
+            }
+            byte[] buffer = new byte[16 * 1024];
+            int total = 0;
+            int n;
+            while ((n = in.read(buffer)) != -1) {
+                total += n;
+                if (total > MAX_PLUGIN_SIZE) {
+                    throw new IOException("插件文件太大了（超过 2 MB）");
+                }
+                out.write(buffer, 0, n);
+            }
+        }
+    }
+
+    // ---- 关于 ----
+
+    /** 读出安装包里带的许可证文件（LICENSE 和 THIRD_PARTY_NOTICES.md）。返回 { text } */
+    @PluginMethod
+    public void readNotices(PluginCall call) {
+        executor.execute(() -> {
+            try {
+                String text = readAsset("licenses/LICENSE") + "\n\n" + readAsset("licenses/THIRD_PARTY_NOTICES.md");
+                JSObject ret = new JSObject();
+                ret.put("text", text);
+                call.resolve(ret);
+            } catch (IOException e) {
+                call.reject("读不到许可证文件：" + e.getMessage());
+            }
+        });
+    }
+
+    private String readAsset(String name) throws IOException {
+        try (InputStream in = getContext().getAssets().open(name)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buffer = new byte[16 * 1024];
+            int n;
+            while ((n = in.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+            }
+            return out.toString(StandardCharsets.UTF_8.name());
+        }
     }
 
     // ---- 播放：前端的“播放器”在 Android 上换成了原生的，见 frontend/src/js/native/audio.js ----

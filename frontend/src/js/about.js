@@ -4,7 +4,10 @@ import { AppVersion } from '../../wailsjs/go/main/App';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 import { DISCLAIMER } from './disclaimer.js';
 import { addSettingsSection } from './settings.js';
-import { escapeHtml } from './util.js';
+import { escapeHtml, guard } from './util.js';
+import { isAndroid } from './platform.js';
+import { nativeCall } from './native/android.js';
+import { textDialog } from './dialog.js';
 
 const REPO_URL = 'https://github.com/dongzhongcen/SwiftPaw';
 
@@ -16,7 +19,7 @@ export function initAbout() {
         <div class="settings-row">
           <div>
             <div class="settings-label">极拍 SwiftPaw</div>
-            <div class="settings-hint">简洁的 Windows 本地音乐播放器，可以用插件在线搜歌</div>
+            <div class="settings-hint">简洁的${isAndroid ? '' : ' Windows '}本地音乐播放器，可以用插件在线搜歌</div>
           </div>
           <div class="settings-value" id="about-version">版本 …</div>
         </div>
@@ -30,8 +33,13 @@ export function initAbout() {
         <div class="settings-row">
           <div>
             <div class="settings-label">开源许可</div>
-            <div class="settings-hint">MIT 许可证；用到的第三方开源软件见安装文件夹里的 THIRD_PARTY_NOTICES.md</div>
+            <div class="settings-hint">${
+              isAndroid
+                ? 'MIT 许可证；用到的第三方开源软件和它们的许可证点右边查看'
+                : 'MIT 许可证；用到的第三方开源软件见安装文件夹里的 THIRD_PARTY_NOTICES.md'
+            }</div>
           </div>
+          ${isAndroid ? '<button class="btn" type="button" id="about-notices">查看</button>' : ''}
         </div>
         <div class="settings-row">
           <div>
@@ -47,6 +55,7 @@ export function initAbout() {
         })
         .catch(() => {});
       body.querySelector('#about-repo').addEventListener('click', () => openRepo());
+      body.querySelector('#about-notices')?.addEventListener('click', guard(showNotices));
     },
   });
 }
@@ -58,4 +67,10 @@ function openRepo() {
   } catch {
     window.open(REPO_URL, '_blank');
   }
+}
+
+// Android 版：安装包里带着许可证文件（LICENSE 和 THIRD_PARTY_NOTICES.md），在这里显示
+async function showNotices() {
+  const { text } = await nativeCall('readNotices');
+  await textDialog({ title: '开源许可', text });
 }
