@@ -153,3 +153,15 @@ export function formDialog({ title, message = '', fields, okText = '保存', max
     d.querySelector('[data-role=cancel]').onclick = () => done(null);
   });
 }
+
+// textDialog 显示一大段只读的文字（比如许可证），只有一个“关闭”按钮
+export function textDialog({ title, text }) {
+  return open((d, done) => {
+    d.innerHTML = frame(
+      title,
+      `<pre class="dialog-text">${escapeHtml(text)}</pre>`,
+      `<button type="button" class="btn primary" data-role="cancel" autofocus>关闭</button>`,
+    );
+    d.querySelector('[data-role=cancel]').onclick = () => done(null);
+  });
+}

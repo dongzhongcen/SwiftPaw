@@ -51,6 +51,10 @@ android {
             }
         }
     }
+    sourceSets {
+        // 许可证文件（关于页里的“开源许可”显示它们），由下面的 copyLicenses 从仓库根目录复制
+        main.assets.srcDirs += "$buildDir/generated/licenses"
+    }
     packaging {
         jniLibs {
             // Go 内核的 .so 比较大，压缩后放进安装包，下载的安装包能小一半多
@@ -78,6 +82,13 @@ dependencies {
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')
 }
+
+def copyLicenses = tasks.register('copyLicenses', Copy) {
+    from(rootProject.file('../../LICENSE'))
+    from(rootProject.file('../../THIRD_PARTY_NOTICES.md'))
+    into("$buildDir/generated/licenses/licenses")
+}
+tasks.named('preBuild') { dependsOn copyLicenses }
 
 // 还没生成 Go 内核时给出清楚的提示，而不是一堆“找不到类”的编译错误
 tasks.named('preBuild') {

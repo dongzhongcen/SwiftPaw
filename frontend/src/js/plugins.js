@@ -16,6 +16,7 @@ import { confirmDialog, formDialog, promptDialog } from './dialog.js';
 import { DISCLAIMER } from './disclaimer.js';
 import { registerView, renderView } from './views.js';
 import { escapeHtml, guard, toast } from './util.js';
+import { isAndroid } from './platform.js';
 
 export function initPlugins() {
   registerView('plugins', loadPluginsView);
@@ -41,7 +42,7 @@ function renderPlugins(body, plugins) {
     body.innerHTML = `
       <div class="empty-state">
         <p>还没有安装插件</p>
-        <p class="muted">点右上角的“从文件安装”选择一个 .js 插件，或者“从网址安装”粘贴插件地址</p>
+        <p class="muted">点${isAndroid ? '上面' : '右上角'}的“从文件安装”选择一个 .js 插件，或者“从网址安装”粘贴插件地址</p>
         <p class="muted">项目里的 examples/plugins/archive-org.js 是一个可以直接用的示例插件</p>
       </div>`;
     return;

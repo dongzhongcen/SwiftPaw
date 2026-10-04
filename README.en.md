@@ -4,9 +4,10 @@
 
 [![Tests](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/test.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/test.yml)
 [![Build Windows](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml)
+[![Build Android](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml)
 [![Latest release](https://img.shields.io/github/v/release/dongzhongcen/SwiftPaw?label=latest%20release)](https://github.com/dongzhongcen/SwiftPaw/releases)
 ![Go](https://img.shields.io/github/go-mod/go-version/dongzhongcen/SwiftPaw)
-![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-0078D4)
+![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -14,11 +15,13 @@
 
 ## Introduction
 
-SwiftPaw (极拍, "Jípāi") is a Windows desktop music player I wrote in Go with [Wails](https://wails.io).
+SwiftPaw (极拍, "Jípāi") is a Windows desktop music player I wrote in Go with [Wails](https://wails.io), and it now has an Android version too.
 
 What I wanted was a simple player: open it and listen to the music on my own computer, with a clean interface and no sign-in. So the interface is minimal black and white, and all data (playlists, favorites, play history) stays on your own computer.
 
 Later I added a plugin system: a plugin is a small JS file that tells the player where to search for songs and how to get a playback URL. That way the player itself isn't tied to any music platform; the plugins decide what you can listen to. The repository comes with an example plugin that searches public-domain music on the Internet Archive.
+
+The Android version is packaged with [Capacitor](https://capacitorjs.com). It uses the same frontend as the desktop version (which switches to a phone layout when the window is narrow), and the same Go code for the play queue, playlists, lyrics and plugins, compiled for Android with gomobile.
 
 I've tried to write the code comments so that beginners can follow them, and to keep each file short.
 
@@ -50,6 +53,14 @@ I've tried to write the code comments so that beginners can follow them, and to 
 **Appearance**
 - Three themes: dark, light, and follow the system
 
+**Android version**
+- Requires Android 8.0 or newer and works on phones and tablets: a bottom tab bar in portrait, and a tab bar on the left on tablets and in landscape
+- "Scan device music" (扫描本机音乐) finds all the music on your phone, with no folder to pick
+- Background playback: keeps playing when you switch apps or lock the screen; pause, skip and seek from the notification and the lock screen, and headset and Bluetooth buttons work too
+- Pauses automatically for phone calls or when another app plays sound, and when you unplug your headphones
+- Tap the mini player to open a full-screen player and swipe down to close it; the back button goes back one level at a time instead of quitting
+- Plugins, online search, playlists and favorites work the same as on the desktop (each device keeps its own data)
+
 ## Screenshots
 
 The local songs in the screenshots are test audio I generated myself, and I wrote the lyrics just for this; the online search uses the example plugin from this repository.
@@ -57,6 +68,12 @@ The local songs in the screenshots are test audio I generated myself, and I wrot
 | Light theme | Lyrics | Online search |
 | :---: | :---: | :---: |
 | ![Light theme](docs/screenshots/light.png) | ![Lyrics page](docs/screenshots/lyrics.png) | ![Online search with the example plugin](docs/screenshots/online.png) |
+
+Android version:
+
+| Local music | Player | Mine | Light theme |
+| :---: | :---: | :---: | :---: |
+| ![Local music on Android](docs/screenshots/android-library.png) | ![Full-screen player on Android](docs/screenshots/android-player.png) | ![The "Mine" page on Android](docs/screenshots/android-mine.png) | ![Light theme on Android](docs/screenshots/android-light.png) |
 
 ## Project Structure
 
@@ -72,6 +89,7 @@ SwiftPaw/
 ├── version.go            # Version number
 ├── handler.go            # The three local endpoints: /music, /cover, /stream
 ├── internal/
+│   ├── core/             # Features shared by desktop and Android (App and the Android plugin both forward here)
 │   ├── music/            # Song info, folder scanning
 │   ├── queue/            # Play queue and play modes
 │   ├── store/            # SQLite: playlists, favorites, recently played
@@ -89,8 +107,9 @@ SwiftPaw/
 │   ├── genbindings/      # Generates the frontend bindings without installing Wails
 │   ├── notices/          # Generates THIRD_PARTY_NOTICES.md
 │   └── jslib/            # Bundles the JS libraries used by plugins into one file
+├── mobile/               # Android version: Go core interface, Capacitor project, build scripts (see mobile/README.md)
 ├── build/                # Icons, Windows installer config
-└── .github/workflows/    # Tests and Windows packaging
+└── .github/workflows/    # Tests, Windows and Android packaging
 ```
 
 ## Getting Started
@@ -106,6 +125,10 @@ For the latest code that hasn't been released yet, you can download the `SwiftPa
 
 Requires Windows 10 / 11 (64-bit) and WebView2 (included with Windows 11, and already installed on most Windows 10 machines).
 
+For Android, download `SwiftPaw-x.y.z-android.apk` (requires Android 8.0 or newer). It isn't in an app store, so open the APK on your phone to install it.
+The first time, Android asks whether to allow "Install unknown apps"; allow it for the app you used to open the APK (such as your browser or file manager).
+To upgrade, just install the new APK; playlists, favorites and plugins are kept. For the latest unreleased code, download the `SwiftPaw-android` artifact from [Actions → 构建 Android 版 (Build Android)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml).
+
 The installer and `SwiftPaw.exe` are not code-signed yet, so on first run Windows may show "Windows protected your PC". Click "More info", then "Run anyway". This is expected and does not mean the file is harmful.
 
 To upgrade, just run the new installer: it checks for an existing install, asks whether to replace it, then uninstalls the old version and installs into the same folder. If SwiftPaw is running, it asks you to close it first. Playlists, favorites, plugins and plugin settings are stored in `%AppData%\SwiftPaw`, so upgrading keeps them.
@@ -117,6 +140,9 @@ Both the zip and the install folder include `LICENSE`, `THIRD_PARTY_NOTICES.md` 
 1. Click "Choose folder" (选择文件夹) and pick the folder where you keep your music
 2. Click a song to start playing; click the heart after a song to add it to favorites, or add it to a playlist
 3. To search for songs online: open the "Plugins" (插件) page → "Install from file" (从文件安装), choose [`examples/plugins/archive-org.js`](examples/plugins/archive-org.js), then search on the "Online search" (在线搜索) page
+
+On Android, tap "Scan device music" (扫描本机音乐) the first time and allow SwiftPaw to access "Music and audio". After you add new songs to your phone, tap "Rescan" (重新扫描) to see them.
+To install a plugin on your phone, use "Install from URL" (从网址安装) and paste the plugin's address (for example the GitHub raw URL of the example plugin), or save the `.js` file to your phone and use "Install from file".
 
 ### Using the Jamendo Plugin
 
@@ -145,10 +171,16 @@ wails build -platform windows/amd64         # Build; output is build/bin/SwiftPa
 wails build -platform windows/amd64 -nsis   # Also build the installer (requires NSIS)
 ```
 
+Building the Android version needs JDK 21, Node.js 22, the Android SDK and NDK; see [mobile/README.md](mobile/README.md) (in Chinese) for the steps:
+
+```bash
+mobile/scripts/build-apk.sh debug   # Output goes to mobile/android/app/build/outputs/apk/debug/
+```
+
 Run the tests:
 
 ```bash
-go test ./internal/...
+go test ./internal/... ./mobile/...
 cd frontend && npm ci && npm run build
 ```
 
@@ -185,7 +217,8 @@ It's now at **1.0.1**. All the features listed above are done, with unit tests a
 
 Known limitations:
 
-- I've only tested it on Windows. There's nothing Windows-specific in the code, so in theory it should also build on macOS / Linux, but I haven't tried
+- I've only tested the desktop version on Windows. There's nothing Windows-specific in the code, so in theory it should also build on macOS / Linux, but I haven't tried
+- Android: `.lrc` files next to your songs can't be read on Android 11 and newer (the system only lets regular apps read media files); lyrics embedded in the audio files are shown. Playlists and favorites aren't synced between desktop and Android
 - The plugin JS environment isn't full Node.js: common modules are built in, and plugins that use other modules (such as `webdav`) will show a "not supported yet" (暂不支持) message
 - Online songs depend on plugins. If a plugin is uninstalled or stops working, online songs you've already added to favorites stay in your lists but can't be played
 - There's no auto-update yet; you need to download new versions from Releases yourself

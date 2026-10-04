@@ -4,9 +4,10 @@
 
 [![测试](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/test.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/test.yml)
 [![构建 Windows 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-windows.yml)
+[![构建 Android 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml)
 [![最新版本](https://img.shields.io/github/v/release/dongzhongcen/SwiftPaw?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/dongzhongcen/SwiftPaw/releases)
 ![Go](https://img.shields.io/github/go-mod/go-version/dongzhongcen/SwiftPaw)
-![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%2010%20%2F%2011-0078D4)
+![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
 [![许可证](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-blue)](LICENSE)
 
@@ -14,11 +15,13 @@
 
 ## 简介
 
-极拍（SwiftPaw）是我用 Go 和 [Wails](https://wails.io) 写的一个 Windows 桌面音乐播放器。
+极拍（SwiftPaw）是我用 Go 和 [Wails](https://wails.io) 写的一个 Windows 桌面音乐播放器，现在也有 Android 版。
 
 我想做的播放器很简单：打开就能听本地的歌，界面干净，不需要登录。所以它的界面是黑白极简风格，所有数据（歌单、收藏、播放记录）都只存在自己电脑上。
 
 后来我又给它加了插件系统：插件是一个小小的 JS 文件，告诉播放器去哪里搜歌、怎么拿到播放地址。这样播放器本身不绑定任何音乐平台，想听什么由插件决定。仓库里带了一个示例插件，可以搜索 Internet Archive 上的公有领域音乐。
+
+Android 版用 [Capacitor](https://capacitorjs.com) 打包，界面和桌面版是同一套前端（窗口窄的时候自动换成手机布局），播放队列、歌单、歌词、插件这些功能也是同一份 Go 代码，用 gomobile 编译给 Android 用。
 
 代码里的注释我都尽量写得适合初学者看，每个文件也尽量保持短小。
 
@@ -48,6 +51,14 @@
 **外观**
 - 深色 / 浅色 / 跟随系统三种主题
 
+**Android 版**
+- 要求 Android 8.0 或更新，手机和平板都能用：竖屏是底部标签栏，平板和横屏是左边的标签栏
+- “扫描本机音乐”读出手机里所有的音乐，不用选文件夹
+- 后台播放：切到别的应用、锁屏后继续放；通知栏和锁屏上可以暂停、切歌、拖进度，耳机和蓝牙按键也能用
+- 来电话或者别的应用放声音时自动暂停，拔耳机时暂停
+- 迷你播放条点开是全屏的播放页，往下滑收起；返回键按层级返回，不会一下子退出
+- 插件、在线搜索、歌单、收藏和桌面版一样（两边的数据是分开保存的）
+
 ## 界面截图
 
 截图里本地音乐的歌都是我自己生成的测试音频，歌词也是我随手写的；在线搜索用的是仓库里的示例插件。
@@ -55,6 +66,12 @@
 | 浅色主题 | 歌词 | 在线搜索 |
 | :---: | :---: | :---: |
 | ![浅色主题](docs/screenshots/light.png) | ![歌词页](docs/screenshots/lyrics.png) | ![用示例插件在线搜索](docs/screenshots/online.png) |
+
+Android 版：
+
+| 本地音乐 | 播放页 | 我的 | 浅色主题 |
+| :---: | :---: | :---: | :---: |
+| ![Android 版的本地音乐](docs/screenshots/android-library.png) | ![Android 版的全屏播放页](docs/screenshots/android-player.png) | ![Android 版的“我的”页面](docs/screenshots/android-mine.png) | ![Android 版浅色主题](docs/screenshots/android-light.png) |
 
 ## 项目结构
 
@@ -70,6 +87,7 @@ SwiftPaw/
 ├── version.go            # 版本号
 ├── handler.go            # /music、/cover、/stream 三个本地地址
 ├── internal/
+│   ├── core/             # 桌面版和 Android 版共用的功能（App 和 Android 插件都转发到这里）
 │   ├── music/            # 歌曲信息、扫描文件夹
 │   ├── queue/            # 播放队列和播放模式
 │   ├── store/            # SQLite：歌单、收藏、最近播放
@@ -87,8 +105,9 @@ SwiftPaw/
 │   ├── genbindings/      # 不装 Wails 也能生成前端绑定
 │   ├── notices/          # 生成第三方许可证说明 THIRD_PARTY_NOTICES.md
 │   └── jslib/            # 把插件用的 JS 库打包成一个文件
+├── mobile/               # Android 版：Go 内核接口、Capacitor 工程、编译脚本（见 mobile/README.md）
 ├── build/                # 图标、Windows 安装程序的配置
-└── .github/workflows/    # 测试和 Windows 打包
+└── .github/workflows/    # 测试、Windows 和 Android 打包
 ```
 
 ## 快速开始
@@ -104,6 +123,10 @@ SwiftPaw/
 
 需要 Windows 10 / 11（64 位）和 WebView2（Windows 11 自带，Windows 10 大多也装好了）。
 
+Android 版下载 `SwiftPaw-x.y.z-android.apk`，需要 Android 8.0 或更新。没有上架应用商店，直接在手机上打开 APK 安装：
+第一次安装时系统会问是否允许“安装未知应用”，在弹出的设置里允许当前用来打开 APK 的应用（比如浏览器或文件管理器）就行。
+以后升级直接装新版本的 APK，歌单、收藏和插件都会保留。还没有发布的最新代码，可以在 [Actions → 构建 Android 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml) 里下载 `SwiftPaw-android` 构建产物。
+
 安装程序和 `SwiftPaw.exe` 目前没有代码签名，第一次运行时 Windows 可能会弹出「Windows 已保护你的电脑」。点「更多信息」，再点「仍要运行」就可以了，这不是病毒。
 
 升级时直接运行新版本的安装程序就行：它会先检查有没有装过旧版本，问你是否替换，然后自动卸载旧版本、装到原来的文件夹。如果极拍正在运行，会提示先关掉。歌单、收藏、插件和插件设置都保存在 `%AppData%\SwiftPaw`，升级不会丢。
@@ -115,6 +138,9 @@ SwiftPaw/
 1. 点“选择文件夹”，选你放音乐的文件夹
 2. 点一首歌开始播放；点歌曲后面的红心收藏，或者加入歌单
 3. 想在线搜歌：打开“插件”页 → “从文件安装”，选择 [`examples/plugins/archive-org.js`](examples/plugins/archive-org.js)，然后到“在线搜索”页搜索
+
+Android 版第一次打开时点“扫描本机音乐”，允许极拍访问“音乐和音频”。手机里新放进去的歌，点“重新扫描”就能看到。
+在手机上装插件可以用“从网址安装”，粘贴插件的地址（比如示例插件在 GitHub 上的 raw 地址）；也可以把 `.js` 文件存到手机里再“从文件安装”。
 
 ### 使用 Jamendo 插件
 
@@ -143,10 +169,16 @@ wails build -platform windows/amd64         # 编译，结果在 build/bin/Swift
 wails build -platform windows/amd64 -nsis   # 同时生成安装程序（需要装 NSIS）
 ```
 
+编译 Android 版需要 JDK 21、Node.js 22、Android SDK 和 NDK，步骤见 [mobile/README.md](mobile/README.md)：
+
+```bash
+mobile/scripts/build-apk.sh debug   # 结果在 mobile/android/app/build/outputs/apk/debug/
+```
+
 运行测试：
 
 ```bash
-go test ./internal/...
+go test ./internal/... ./mobile/...
 cd frontend && npm ci && npm run build
 ```
 
@@ -183,7 +215,8 @@ module.exports = {
 
 目前知道的不足：
 
-- 只在 Windows 上测试过。代码里没有专门针对 Windows 的部分，理论上 macOS / Linux 也能编译，但我没有试
+- 桌面版只在 Windows 上测试过。代码里没有专门针对 Windows 的部分，理论上 macOS / Linux 也能编译，但我没有试
+- Android 版：和歌曲同名的 `.lrc` 文件在 Android 11 及以上读不到（系统只允许普通应用读媒体文件），音频文件里内嵌的歌词可以显示；桌面版和 Android 版的歌单、收藏不会同步
 - 插件的 JS 环境不是完整的 Node.js：内置了常用的模块，用到其他模块（比如 `webdav`）的插件会提示“暂不支持”
 - 在线歌曲依赖插件。插件被卸载或者失效后，已经收藏的在线歌曲还在列表里，但放不了
 - 还没有自动更新，新版本需要自己去 Releases 下载

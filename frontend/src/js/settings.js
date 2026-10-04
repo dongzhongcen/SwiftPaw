@@ -4,6 +4,7 @@ import { saveConfig } from './config.js';
 import { registerView } from './views.js';
 import { applyTheme, currentTheme, themes } from './theme.js';
 import { escapeHtml } from './util.js';
+import { isAndroid } from './platform.js';
 
 // sections 让其他模块往设置页里加内容（返回 HTML 和绑定事件的函数）
 const extraSections = [];
@@ -29,7 +30,7 @@ function renderSettings(body) {
         <div class="settings-row">
           <div>
             <div class="settings-label">主题</div>
-            <div class="settings-hint">跟随系统时，会随 Windows 的深色/浅色模式自动切换</div>
+            <div class="settings-hint">跟随系统时，会随 ${isAndroid ? '手机' : 'Windows'} 的深色/浅色模式自动切换</div>
           </div>
           <div class="segmented" id="theme-picker" role="radiogroup" aria-label="主题">
             ${themes

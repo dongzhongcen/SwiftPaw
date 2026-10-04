@@ -109,3 +109,19 @@
     padding: 16px 10px;
     color: var(--fg-muted);
 }
+
+/* 只读的长文字（许可证） */
+.dialog-text {
+    max-height: 60vh;
+    margin: 0;
+    overflow: auto;
+    border: 1px solid var(--border);
+    padding: 10px;
+    color: var(--fg-muted);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    user-select: text;
+}

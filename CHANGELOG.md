@@ -27,6 +27,11 @@
   - 在线歌曲由原生播放器直接请求，带上插件要求的请求头
   - 封面从音频文件里读；内嵌歌词能显示，同名 `.lrc` 文件在 Android 11 及以上读不到（系统限制）
 - **示例插件 Jamendo**：`examples/plugins/jamendo.js` 通过 Jamendo 官方 API v3.0 搜索歌曲、播放（无损音质只在音乐人允许下载时提供）和获取歌词；需要在插件的「设置」里填写自己在 devportal.jamendo.com 申请的 Client ID，没填或填错时给出中文提示。Jamendo 的音乐以知识共享许可证发布，使用时请遵守 Jamendo 的 API 使用条款
+- **Android 版：插件、关于页和说明文档**
+  - 插件页“从文件安装”用系统的文件选择器选 `.js` 插件（不超过 2 MB）
+  - 设置页“关于”可以直接查看 `LICENSE` 和 `THIRD_PARTY_NOTICES.md`（打包进安装包）
+  - 设置页、插件页里提到 Windows 和“右上角”的文字在手机上换成对应的说法
+  - README 增加 Android 版的介绍、截图、安装和编译方法；发布说明改成 1.1.0，附上 Android 安装包
 
 ### 改动
 
