@@ -217,7 +217,7 @@ module.exports = {
 
 ## 当前状态
 
-现在是 **1.1.0**，上面列的功能都已经完成，有单元测试和界面走查。改动记录见 [CHANGELOG.md](CHANGELOG.md)。
+现在是 **1.2.0**，上面列的功能都已经完成，有单元测试和界面走查。改动记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 目前知道的不足：
 

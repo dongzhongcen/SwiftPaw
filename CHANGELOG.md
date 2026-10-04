@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-04
+
 ### 新增
 
 - **三种风格主题**：设置页“外观”里新增“风格”，点一下马上生效，下次打开还在（桌面版和 Android 版都一样）
@@ -110,5 +112,7 @@
   - 支持 FLAC、M4A、AAC、OGG、Opus、WAV
   - 播放队列：下一首播放、移除；顺序、单曲循环、随机（一轮内不重复）
 
+[1.2.0]: https://github.com/dongzhongcen/SwiftPaw/releases/tag/v1.2.0
+[1.1.0]: https://github.com/dongzhongcen/SwiftPaw/releases/tag/v1.1.0
 [1.0.1]: https://github.com/dongzhongcen/SwiftPaw/releases/tag/v1.0.1
 [1.0.0]: https://github.com/dongzhongcen/SwiftPaw/releases/tag/v1.0.0

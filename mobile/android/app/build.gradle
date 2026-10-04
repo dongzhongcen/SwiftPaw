@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 // 版本号：versionName 显示给用户看，versionCode 每次发布都要变大（1.1.0 → 10100）
-def appVersionName = "1.1.0"
-def appVersionCode = 10100
+def appVersionName = "1.2.0"
+def appVersionCode = 10200
 
 // 正式版的签名：CI 里从仓库的 Secrets 解出签名文件，通过环境变量传进来。
 // 没有这些环境变量时（比如本地编译、别人 fork 的仓库发来的 PR）只能编 debug 版
