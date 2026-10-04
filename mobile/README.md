@@ -24,8 +24,38 @@ mobile/
 
 - Go 内核通过 `gomobile bind` 编译成 `swiftpaw-core.aar`，Java 里是 `com.dongzhongcen.swiftpaw.core.gocore.Core`。
   它只有一个通用的 `call(方法名, JSON 参数)`，按名字调用 `internal/core` 里的方法，所以前端调用的方法名和参数和桌面版完全一样。
+- 前端在 Android 上把 `window.go.main.App` 换成调用这个插件（`frontend/src/js/platform.js`、`js/native/android.js`），
+  所以 `wailsjs` 和各个页面的代码不用改。
 - 数据（配置、SQLite 数据库、插件）保存在应用的私有文件夹里，卸载应用时会一起删除。
 - 数据库用的是纯 Go 的 `modernc.org/sqlite`，不需要 cgo 版的 SQLite，桌面版和 Android 版是同一份代码。
+
+### 本机音乐
+
+- 桌面版是选一个文件夹再扫描；Android 版用系统的媒体库（MediaStore）读出手机里所有的音乐（`MediaLibrary.java`），
+  标题、歌手、专辑用系统读好的，再交给 Go 内核的 `SetLibrary`。铃声、通知音不算。
+- 第一次扫描时请求读取音乐的权限：Android 13 起是“音乐和音频”（`READ_MEDIA_AUDIO`），之前是存储权限。
+- 封面：前端请求的 `/cover?path=...` 在 WebView 里被 `CoverWebViewClient` 拦下，由 Go 内核读出音频文件里内嵌的封面。
+- 歌词：音频文件里内嵌的歌词能读到。**和歌曲同名的 `.lrc` 文件在 Android 11 及以上读不到**（系统只允许普通应用读媒体文件，`.lrc` 不算），
+  在线歌曲的歌词还是由插件提供。
+
+### 播放
+
+```
+前端的 NativeAudio（js/native/audio.js，模仿 <audio>）
+   │ playerLoad / playerPlay / playerPause / playerSeek
+   ▼
+SwiftPawPlugin ──> Playback（播放逻辑）──> PlaybackService 里的 ExoPlayer（Media3）
+                        │                       └─ MediaSession：媒体通知、锁屏、耳机和蓝牙按键
+                        └─ Go 内核的播放队列：QueueState / QueueNext / QueuePrevious / MediaSource / RecordPlay
+```
+
+- 播放顺序和桌面版一样由 Go 的播放队列决定，ExoPlayer 里每次只放一首。
+- 一首放完自动接下一首、放不了时跳过（整个队列都放不了时停下）、记“最近播放”都在原生这边做，
+  所以界面在后台或者被系统回收了也能继续放。做完后通过 `queueChanged` 等事件通知前端刷新。
+- 通知栏和锁屏上的“上一首 / 下一首”通过 `PlaybackService` 里的 `QueuePlayer` 转给 Go 的队列。
+- 在线歌曲：原生向 Go 内核的 `MediaSource` 要真实地址和插件要求的请求头（Referer、User-Agent 等），由 ExoPlayer 直接请求。
+  桌面版那种本地 HTTP 代理在 Android 上用不到。
+- 处理音频焦点（来电话、别的应用放声音时暂停）和“拔耳机暂停”。
 
 ## 本地编译
 

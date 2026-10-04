@@ -34,6 +34,7 @@ import { loadConfig, finishRestoring } from './js/config.js';
 import { state, on, currentSong } from './js/state.js';
 import { $, guard, showError, toast } from './js/util.js';
 import { icons } from './js/icons.js';
+import { isAndroid } from './js/platform.js';
 
 document.querySelector('#app').innerHTML = layoutHtml;
 
@@ -44,7 +45,7 @@ initLyrics();
 initSettings();
 initOnline();
 initPlugins();
-initMediaSession();
+if (!isAndroid) initMediaSession(); // Android 上系统媒体控制由原生的播放服务负责
 initAbout();
 initShell();
 initCoverButton();
@@ -63,7 +64,7 @@ async function startApp() {
     if (config.lastFolder) {
       await loadFolder(config.lastFolder, config.lastSong || '');
     } else {
-      toast('请选择音乐文件夹');
+      toast(isAndroid ? '请先扫描本机音乐' : '请选择音乐文件夹');
     }
   } catch (err) {
     showError(err);

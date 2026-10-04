@@ -21,8 +21,19 @@ export function onNative(eventName, callback) {
   cap.addListener('SwiftPaw', eventName, callback);
 }
 
+// Android 上没有“音乐文件夹”，歌曲库来自系统的媒体库（手机里所有的音乐）。
+// 界面上需要一个文件夹名的地方显示这个名字，配置里的 lastFolder 也存它
+export const DEVICE_LIBRARY = '本机音乐';
+
 // 桌面版和 Android 版做法不一样的方法放在这里，其他方法直接交给 Go 内核
-const overrides = {};
+const overrides = {
+  // “选择文件夹”换成扫描整个手机（第一次会请求读取音乐的权限）
+  SelectFolder: async () => DEVICE_LIBRARY,
+  ScanMusic: async () => {
+    const result = await nativeCall('scanLibrary');
+    return JSON.parse(result.json);
+  },
+};
 
 // overrideMethod 让某个方法在 Android 上换一种做法（比如选择文件夹要用系统的选择器）
 export function overrideMethod(name, fn) {
