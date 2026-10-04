@@ -89,3 +89,26 @@ export namespace queue {
 
 }
 
+export namespace store {
+	
+	export class Playlist {
+	    id: number;
+	    name: string;
+	    count: number;
+	    builtin: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Playlist(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.count = source["count"];
+	        this.builtin = source["builtin"];
+	    }
+	}
+
+}
+

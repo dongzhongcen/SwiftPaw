@@ -24,6 +24,11 @@ jobs:
           go vet ./internal/...
           go test ./internal/...
 
+      - name: 检查前端绑定是否和 Go 代码一致
+        run: |
+          go run ./scripts/genbindings
+          git diff --exit-code frontend/wailsjs
+
       - name: 前端构建
         working-directory: frontend
         run: |

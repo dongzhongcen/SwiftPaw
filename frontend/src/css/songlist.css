@@ -1,0 +1,131 @@
+/* 歌曲列表：表头 + 每行（序号、标题、歌手、专辑、操作按钮） */
+.song-head,
+.song-row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 120px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+}
+
+.song-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 38px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg-faint);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+}
+
+.song-row {
+    height: 46px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.song-row:hover {
+    background: var(--bg-hover);
+}
+
+.song-row.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+}
+
+.col-index {
+    color: var(--fg-faint);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.col-index .eq {
+    display: none;
+}
+
+.song-row.active .col-index .num {
+    display: none;
+}
+
+.song-row.active .col-index .eq {
+    display: inline-flex;
+}
+
+.song-row.active .col-index .icon {
+    width: 13px;
+    height: 13px;
+}
+
+.col-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.title-text,
+.col-artist,
+.col-album {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.col-artist,
+.col-album {
+    color: var(--fg-muted);
+    font-size: 13px;
+}
+
+.chip {
+    flex: none;
+    border: 1px solid var(--border);
+    padding: 0 5px;
+    color: var(--fg-faint);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    line-height: 16px;
+}
+
+.song-row.active .col-index,
+.song-row.active .col-artist,
+.song-row.active .col-album,
+.song-row.active .chip {
+    color: var(--accent-fg);
+    border-color: currentColor;
+}
+
+.col-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 2px;
+}
+
+/* 行尾按钮平时隐藏，鼠标移到这一行时才显示；已收藏的红心一直显示 */
+.row-btn {
+    visibility: hidden;
+}
+
+.song-row:hover .row-btn,
+.row-btn:focus-visible,
+.row-btn.on {
+    visibility: visible;
+}
+
+.song-row.active .row-btn {
+    color: var(--accent-fg);
+}
+
+.song-row.active .row-btn:hover {
+    background: var(--accent-fg);
+    color: var(--accent);
+}
+
+.group-label {
+    padding: 18px 12px 6px;
+    color: var(--fg-faint);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+}
