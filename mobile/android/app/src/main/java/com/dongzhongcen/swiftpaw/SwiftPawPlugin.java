@@ -1,29 +1,57 @@
 package com.dongzhongcen.swiftpaw;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import androidx.activity.OnBackPressedCallback;
+import androidx.media3.session.MediaController;
+import androidx.media3.session.SessionToken;
 import com.getcapacitor.JSObject;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * 前端和 Go 内核之间的桥。前端（frontend/src/js/platform）把桌面版里调用 Wails 绑定的地方
  * 换成调用这个插件，方法名和参数完全一样。
  */
-@CapacitorPlugin(name = "SwiftPaw")
+@CapacitorPlugin(
+    name = "SwiftPaw",
+    permissions = {
+        // 读取手机里的音乐：Android 13 起是 READ_MEDIA_AUDIO，之前是 READ_EXTERNAL_STORAGE
+        @Permission(alias = SwiftPawPlugin.AUDIO, strings = { Manifest.permission.READ_MEDIA_AUDIO }),
+        @Permission(alias = SwiftPawPlugin.STORAGE, strings = { Manifest.permission.READ_EXTERNAL_STORAGE }),
+    }
+)
 public class SwiftPawPlugin extends Plugin {
+
+    static final String AUDIO = "audio";
+    static final String STORAGE = "storage";
+
+    // 连着后台播放服务，服务才会启动；界面销毁时断开
+    private ListenableFuture<MediaController> controller;
 
     // 插件搜索、下载可能要好几秒，放到线程池里做，不挡住其它调用
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Override
     public void load() {
+        // 拦下 /cover 请求，用 Go 内核读封面（桌面版是 Go 的 HTTP 服务提供的）
+        getBridge().setWebViewClient(new CoverWebViewClient(getBridge()));
+        connectPlayback();
+
         // 返回键交给前端处理（关对话框、收起播放页、回上一级页面），前端还没准备好时直接退到后台
         getActivity()
             .getOnBackPressedDispatcher()
@@ -91,8 +119,134 @@ public class SwiftPawPlugin extends Plugin {
         }
     }
 
+    // ---- 本机音乐 ----
+
+    /** 扫描手机里的音乐，交给 Go 内核作为歌曲库。返回 { json: 歌曲列表 } */
+    @PluginMethod
+    public void scanLibrary(PluginCall call) {
+        String alias = audioPermission();
+        if (getPermissionState(alias) != PermissionState.GRANTED) {
+            requestPermissionForAlias(alias, call, "onAudioPermission");
+            return;
+        }
+        doScan(call);
+    }
+
+    @PermissionCallback
+    private void onAudioPermission(PluginCall call) {
+        if (getPermissionState(audioPermission()) == PermissionState.GRANTED) {
+            doScan(call);
+        } else {
+            call.reject("没有读取音乐的权限。请在系统设置的“应用 → 极拍 → 权限”里允许访问音乐和音频，然后再扫描");
+        }
+    }
+
+    private static String audioPermission() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ? AUDIO : STORAGE;
+    }
+
+    private void doScan(PluginCall call) {
+        executor.execute(() -> {
+            try {
+                JSONArray songs = MediaLibrary.scan(getContext());
+                String kept = GoCore.get(getContext()).call("SetLibrary", "[" + songs + "]");
+                JSObject ret = new JSObject();
+                ret.put("json", kept);
+                call.resolve(ret);
+            } catch (Exception e) {
+                call.reject("扫描失败：" + e.getMessage());
+            }
+        });
+    }
+
+    // ---- 播放：前端的“播放器”在 Android 上换成了原生的，见 frontend/src/js/native/audio.js ----
+
+    private void connectPlayback() {
+        SessionToken token = new SessionToken(getContext(), new ComponentName(getContext(), PlaybackService.class));
+        controller = new MediaController.Builder(getContext(), token).buildAsync();
+        Playback.get(getContext()).setListener(
+            new Playback.Listener() {
+                @Override
+                public void onState(JSONObject state) {
+                    try {
+                        notifyListeners("playerState", JSObject.fromJSONObject(state));
+                    } catch (org.json.JSONException ignored) {
+                        // 不会发生
+                    }
+                }
+
+                @Override
+                public void onQueueChanged(String queueJson) {
+                    JSObject data = new JSObject();
+                    data.put("json", queueJson);
+                    notifyListeners("queueChanged", data);
+                }
+
+                @Override
+                public void onError(String message) {
+                    JSObject data = new JSObject();
+                    data.put("message", message);
+                    notifyListeners("playerError", data);
+                }
+
+                @Override
+                public void onRecentChanged() {
+                    notifyListeners("recentChanged", new JSObject());
+                }
+            }
+        );
+    }
+
+    // onPlayer 在主线程、播放服务准备好以后执行
+    private void onPlayer(PluginCall call, java.util.function.Consumer<Playback> task) {
+        getActivity().runOnUiThread(() -> {
+            Playback playback = Playback.get(getContext());
+            playback.whenReady(() -> {
+                task.accept(playback);
+                call.resolve();
+            });
+        });
+    }
+
+    /** 加载 Go 播放队列里的一首歌。参数：key（为空表示停止），play */
+    @PluginMethod
+    public void playerLoad(PluginCall call) {
+        String key = call.getString("key", "");
+        boolean play = Boolean.TRUE.equals(call.getBoolean("play", false));
+        onPlayer(call, (p) -> p.load(key, play));
+    }
+
+    @PluginMethod
+    public void playerPlay(PluginCall call) {
+        onPlayer(call, Playback::play);
+    }
+
+    @PluginMethod
+    public void playerPause(PluginCall call) {
+        onPlayer(call, Playback::pause);
+    }
+
+    /** 跳到某个位置。参数：position（秒） */
+    @PluginMethod
+    public void playerSeek(PluginCall call) {
+        double position = call.getDouble("position", 0.0);
+        onPlayer(call, (p) -> p.seek(Math.round(position * 1000)));
+    }
+
+    /** 音量。参数：volume（0 到 1） */
+    @PluginMethod
+    public void playerSetVolume(PluginCall call) {
+        double volume = call.getDouble("volume", 1.0);
+        onPlayer(call, (p) -> p.setVolume((float) volume));
+    }
+
     @Override
     protected void handleOnDestroy() {
+        Playback.get(getContext()).setListener(null);
+        if (controller != null) {
+            MediaController.releaseFuture(controller);
+            controller = null;
+        }
         executor.shutdown();
     }
 }

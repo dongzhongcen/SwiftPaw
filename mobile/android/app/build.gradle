@@ -72,6 +72,9 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    // 原生播放器和系统媒体控制（通知栏、锁屏、耳机按键）
+    implementation "androidx.media3:media3-exoplayer:$media3Version"
+    implementation "androidx.media3:media3-session:$media3Version"
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')
 }

@@ -9,8 +9,9 @@
 | Capacitor（@capacitor/android、@capacitor/core） | 8.5.2 | MIT | 把前端界面放进 Android 的 WebView，并连接原生代码 |
 | Apache Cordova Android framework（org.apache.cordova:framework，Capacitor 自带） | 14.0.1 | Apache-2.0 | Capacitor 的兼容层 |
 | AndroidX（appcompat、core、core-splashscreen、coordinatorlayout、activity、fragment、lifecycle、webkit 等） | 见依赖树 | Apache-2.0 | Android 官方支持库 |
-| Kotlin 标准库、kotlinx-coroutines、JetBrains annotations（AndroidX 依赖） | 2.0.21、1.8.1、23.0.0 | Apache-2.0 | AndroidX 运行需要 |
-| Guava ListenableFuture（com.google.guava:listenablefuture） | 1.0 | Apache-2.0 | AndroidX 依赖 |
+| AndroidX Media3（media3-exoplayer、media3-session 等）、AndroidX Media（androidx.media:media） | 1.11.1、1.7.0 | Apache-2.0 | 原生播放器（ExoPlayer）和系统媒体控制（通知栏、锁屏、耳机按键） |
+| Kotlin 标准库、kotlinx-coroutines、JetBrains annotations（AndroidX 依赖） | 2.2.10、1.8.1、23.0.0 | Apache-2.0 | AndroidX 运行需要 |
+| Guava（com.google.guava:guava、failureaccess） | 33.3.1-android、1.0.2 | Apache-2.0 | Media3 依赖 |
 | JSpecify annotations（org.jspecify:jspecify） | 1.0.0 | Apache-2.0 | AndroidX 依赖 |
 
 ### Capacitor（MIT）
@@ -41,7 +42,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### Apache License 2.0（AndroidX、Cordova、Kotlin、Guava、JSpecify 等）
+### Apache License 2.0（AndroidX、Media3、Cordova、Kotlin、Guava、JSpecify 等）
 
 ```
 
