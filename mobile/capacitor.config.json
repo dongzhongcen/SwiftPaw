@@ -1,0 +1,14 @@
+{
+  "appId": "com.dongzhongcen.swiftpaw",
+  "appName": "极拍",
+  "webDir": "../frontend/dist",
+  "android": {
+    "path": "android"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

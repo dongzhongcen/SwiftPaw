@@ -2,9 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
-
-	"github.com/dhowden/tag"
 
 	"musicplayer/internal/music"
 )
@@ -44,28 +41,12 @@ func (h *MusicHandler) serveMusic(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *MusicHandler) serveCover(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if !music.IsAudio(path) {
-		http.Error(w, "只允许读取音频文件的封面", http.StatusForbidden)
-		return
-	}
-
-	file, err := os.Open(path)
+	picture, err := music.ReadCover(r.URL.Query().Get("path"))
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	defer file.Close()
-
-	// tag 库能读 mp3、flac、m4a、ogg 里内嵌的封面
-	metadata, err := tag.ReadFrom(file)
-	if err != nil || metadata.Picture() == nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	picture := metadata.Picture()
-	w.Header().Set("Content-Type", picture.MIMEType)
+	w.Header().Set("Content-Type", picture.MIME)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(picture.Data)
 }

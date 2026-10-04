@@ -1,3 +1,28 @@
+export namespace core {
+	
+	export class AppConfig {
+	    lastFolder: string;
+	    lastSong: string;
+	    playMode: string;
+	    volume: number;
+	    theme: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AppConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.lastFolder = source["lastFolder"];
+	        this.lastSong = source["lastSong"];
+	        this.playMode = source["playMode"];
+	        this.volume = source["volume"];
+	        this.theme = source["theme"];
+	    }
+	}
+
+}
+
 export namespace lyrics {
 	
 	export class Line {
@@ -47,31 +72,6 @@ export namespace lyrics {
 		    }
 		    return a;
 		}
-	}
-
-}
-
-export namespace main {
-	
-	export class AppConfig {
-	    lastFolder: string;
-	    lastSong: string;
-	    playMode: string;
-	    volume: number;
-	    theme: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new AppConfig(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.lastFolder = source["lastFolder"];
-	        this.lastSong = source["lastSong"];
-	        this.playMode = source["playMode"];
-	        this.volume = source["volume"];
-	        this.theme = source["theme"];
-	    }
 	}
 
 }

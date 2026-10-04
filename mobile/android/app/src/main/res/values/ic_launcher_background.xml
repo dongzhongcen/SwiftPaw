@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#000000</color>
+    <!-- 启动时的背景色，和界面的深色主题一样是黑色 -->
+    <color name="splash_background">#000000</color>
+</resources>

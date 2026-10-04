@@ -4,7 +4,7 @@ import {music} from '../models';
 import {store} from '../models';
 import {lyrics} from '../models';
 import {plugin} from '../models';
-import {main} from '../models';
+import {core} from '../models';
 import {queue} from '../models';
 
 export function AddToPlaylist(arg1:number,arg2:music.Song):Promise<number>;
@@ -25,7 +25,7 @@ export function InstallPluginFromFile():Promise<plugin.Info>;
 
 export function InstallPluginFromURL(arg1:string):Promise<Array<plugin.Info>>;
 
-export function LoadConfig():Promise<main.AppConfig>;
+export function LoadConfig():Promise<core.AppConfig>;
 
 export function PlayLibrary(arg1:number):Promise<queue.State>;
 
@@ -65,7 +65,7 @@ export function RenamePlaylist(arg1:number,arg2:string):Promise<void>;
 
 export function ResolveSong(arg1:music.Song):Promise<string>;
 
-export function SaveConfig(arg1:main.AppConfig):Promise<void>;
+export function SaveConfig(arg1:core.AppConfig):Promise<void>;
 
 export function ScanMusic(arg1:string):Promise<Array<music.Song>>;
 

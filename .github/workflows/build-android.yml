@@ -1,0 +1,144 @@
+name: 构建 Android 版
+
+# 推送到 main、发 PR、在 Actions 页面手动点“Run workflow”时运行，编出的安装包作为 artifact 上传。
+# 推送 v 开头的标签时不在这里单独运行，而是由 build-windows.yml 调用（workflow_call），
+# 编好后和 Windows 版的安装包一起放进同一个 GitHub Release。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        required: false
+      ANDROID_KEYSTORE_PASSWORD:
+        required: false
+      ANDROID_KEY_ALIAS:
+        required: false
+      ANDROID_KEY_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # 和 mobile/scripts/build-aar.sh、本地开发用的 NDK 版本一致
+  NDK_VERSION: 27.3.13750724
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          cache-dependency-path: |
+            mobile/android/*.gradle
+            mobile/android/app/*.gradle
+            mobile/android/gradle/wrapper/gradle-wrapper.properties
+
+      # Capacitor 8 的命令行工具需要 Node.js 22
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 安装 Android NDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: 编译前端
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: 编译 Go 内核（gomobile bind）
+        run: mobile/scripts/build-aar.sh
+
+      - name: 同步 Capacitor 工程
+        working-directory: mobile
+        run: |
+          npm ci
+          npx cap sync android
+
+      # 有签名用的 Secrets 时编正式版；没有时（比如 fork 仓库发来的 PR 拿不到 Secrets）编 debug 版
+      - name: 准备签名文件
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/swiftpaw-release.jks"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/swiftpaw-release.jks" >> "$GITHUB_ENV"
+            echo "type=release" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::没有签名用的 Secrets，编译 debug 版"
+            echo "type=debug" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Gradle 打包
+        working-directory: mobile/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ "${{ steps.signing.outputs.type }}" = release ]; then
+            ./gradlew --no-daemon assembleRelease
+          else
+            ./gradlew --no-daemon assembleDebug
+          fi
+
+      - name: 检查并改名
+        id: apk
+        env:
+          TYPE: ${{ steps.signing.outputs.type }}
+        run: |
+          version=$(grep -oP 'def appVersionName = "\K[^"]+' mobile/android/app/build.gradle)
+          src="mobile/android/app/build/outputs/apk/$TYPE/app-$TYPE.apk"
+          mkdir -p dist
+          if [ "$TYPE" = release ]; then
+            name="SwiftPaw-$version-android.apk"
+          else
+            name="SwiftPaw-$version-android-debug.apk"
+          fi
+          cp "$src" "dist/$name"
+          tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          "$tools/apksigner" verify --print-certs "dist/$name"
+          badging=$("$tools/aapt2" dump badging "dist/$name")
+          echo "$badging" | grep -E "^(package|sdkVersion|targetSdkVersion|native-code):"
+          # 三种 CPU 的 Go 内核都要在安装包里
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            unzip -l "dist/$name" | grep -q "lib/$abi/libgojni.so" || { echo "安装包里缺少 $abi 的 Go 内核"; exit 1; }
+          done
+          echo "$badging" | grep -q "versionName='$version" || { echo "versionName 不是 $version"; exit 1; }
+          if [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = true ] && [ "${GITHUB_REF_NAME#v}" != "$version" ]; then
+            echo "::warning::标签 $GITHUB_REF_NAME 和 Android 版本号 $version 不一致"
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwiftPaw-android
+          path: dist/*.apk
+          if-no-files-found: error
+
+      - name: 清理签名文件
+        if: always()
+        run: rm -f "$RUNNER_TEMP/swiftpaw-release.jks"
