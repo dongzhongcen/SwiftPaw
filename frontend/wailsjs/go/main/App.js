@@ -6,6 +6,38 @@ export function LoadConfig() {
   return window['go']['main']['App']['LoadConfig']();
 }
 
+export function PlayLibrary(arg1) {
+  return window['go']['main']['App']['PlayLibrary'](arg1);
+}
+
+export function QueueAddNext(arg1) {
+  return window['go']['main']['App']['QueueAddNext'](arg1);
+}
+
+export function QueueNext(arg1) {
+  return window['go']['main']['App']['QueueNext'](arg1);
+}
+
+export function QueuePlayAt(arg1) {
+  return window['go']['main']['App']['QueuePlayAt'](arg1);
+}
+
+export function QueuePrevious() {
+  return window['go']['main']['App']['QueuePrevious']();
+}
+
+export function QueueRemove(arg1) {
+  return window['go']['main']['App']['QueueRemove'](arg1);
+}
+
+export function QueueSetMode(arg1) {
+  return window['go']['main']['App']['QueueSetMode'](arg1);
+}
+
+export function QueueState() {
+  return window['go']['main']['App']['QueueState']();
+}
+
 export function SaveConfig(arg1) {
   return window['go']['main']['App']['SaveConfig'](arg1);
 }
