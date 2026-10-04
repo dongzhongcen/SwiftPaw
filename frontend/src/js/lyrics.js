@@ -5,7 +5,7 @@ import { GetLyrics } from '../../wailsjs/go/main/App';
 import { audio, coverUrl } from './player.js';
 import { registerView } from './views.js';
 import { state, on, currentSong } from './state.js';
-import { escapeHtml, displayName, songKey } from './util.js';
+import { escapeHtml, displayName, songKey, isOnline } from './util.js';
 
 const sourceNames = { lrc: '同名 LRC 文件', embedded: '音频文件内嵌', plugin: '插件' };
 
@@ -78,8 +78,11 @@ function renderLyrics(body) {
   } else if (!lyrics) {
     linesHtml = '<p class="lyrics-tip">正在加载歌词…</p>';
   } else if (lyrics.lines.length === 0) {
+    const tip = isOnline(song)
+      ? `「${song.source}」插件没有提供这首歌的歌词`
+      : '把同名的 .lrc 文件放在歌曲旁边就能显示，比如 晴天.mp3 和 晴天.lrc';
     linesHtml = `<p class="lyrics-tip">暂无歌词</p>
-      <p class="lyrics-tip small">把同名的 .lrc 文件放在歌曲旁边就能显示，比如 晴天.mp3 和 晴天.lrc</p>`;
+      <p class="lyrics-tip small">${escapeHtml(tip)}</p>`;
   } else {
     linesHtml = lyrics.lines
       .map((line, i) => `<p class="lyric-line" data-index="${i}">${escapeHtml(line.text) || '&nbsp;'}</p>`)
@@ -91,7 +94,7 @@ function renderLyrics(body) {
     <div class="lyrics-view ${lyrics?.plain ? 'plain' : ''}">
       <div class="lyrics-side">
         <div class="lyrics-cover">
-          ${song ? `<img src="${escapeHtml(coverUrl(song))}" alt="" onerror="this.hidden=true" />` : ''}
+          ${song && coverUrl(song) ? `<img src="${escapeHtml(coverUrl(song))}" alt="" onerror="this.hidden=true" />` : ''}
         </div>
         <h2 class="lyrics-title">${escapeHtml(song ? displayName(song) : '')}</h2>
         <p class="lyrics-meta">${escapeHtml(song ? [song.artist, song.album].filter(Boolean).join(' · ') : '')}</p>

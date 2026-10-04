@@ -26,6 +26,14 @@ export function GetLyrics(arg1) {
   return window['go']['main']['App']['GetLyrics'](arg1);
 }
 
+export function InstallPluginFromFile() {
+  return window['go']['main']['App']['InstallPluginFromFile']();
+}
+
+export function InstallPluginFromURL(arg1) {
+  return window['go']['main']['App']['InstallPluginFromURL'](arg1);
+}
+
 export function LoadConfig() {
   return window['go']['main']['App']['LoadConfig']();
 }
@@ -44,6 +52,10 @@ export function PlaylistSongs(arg1) {
 
 export function Playlists() {
   return window['go']['main']['App']['Playlists']();
+}
+
+export function Plugins() {
+  return window['go']['main']['App']['Plugins']();
 }
 
 export function QueueAddNext(arg1) {
@@ -82,12 +94,20 @@ export function RecordPlay(arg1) {
   return window['go']['main']['App']['RecordPlay'](arg1);
 }
 
+export function ReloadPlugins() {
+  return window['go']['main']['App']['ReloadPlugins']();
+}
+
 export function RemoveFromPlaylist(arg1, arg2) {
   return window['go']['main']['App']['RemoveFromPlaylist'](arg1, arg2);
 }
 
 export function RenamePlaylist(arg1, arg2) {
   return window['go']['main']['App']['RenamePlaylist'](arg1, arg2);
+}
+
+export function ResolveSong(arg1) {
+  return window['go']['main']['App']['ResolveSong'](arg1);
 }
 
 export function SaveConfig(arg1) {
@@ -98,10 +118,22 @@ export function ScanMusic(arg1) {
   return window['go']['main']['App']['ScanMusic'](arg1);
 }
 
+export function SearchOnline(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SearchOnline'](arg1, arg2, arg3);
+}
+
 export function SelectFolder() {
   return window['go']['main']['App']['SelectFolder']();
 }
 
+export function SetPluginEnabled(arg1, arg2) {
+  return window['go']['main']['App']['SetPluginEnabled'](arg1, arg2);
+}
+
 export function ToggleFavorite(arg1) {
   return window['go']['main']['App']['ToggleFavorite'](arg1);
+}
+
+export function UninstallPlugin(arg1) {
+  return window['go']['main']['App']['UninstallPlugin'](arg1);
 }

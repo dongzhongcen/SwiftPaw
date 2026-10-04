@@ -3,6 +3,7 @@
 import {music} from '../models';
 import {store} from '../models';
 import {lyrics} from '../models';
+import {plugin} from '../models';
 import {main} from '../models';
 import {queue} from '../models';
 
@@ -18,6 +19,10 @@ export function FavoriteKeys():Promise<Array<string>>;
 
 export function GetLyrics(arg1:music.Song):Promise<lyrics.Lyrics>;
 
+export function InstallPluginFromFile():Promise<plugin.Info>;
+
+export function InstallPluginFromURL(arg1:string):Promise<Array<plugin.Info>>;
+
 export function LoadConfig():Promise<main.AppConfig>;
 
 export function PlayLibrary(arg1:number):Promise<queue.State>;
@@ -27,6 +32,8 @@ export function PlaySongs(arg1:Array<music.Song>,arg2:number):Promise<queue.Stat
 export function PlaylistSongs(arg1:number):Promise<Array<music.Song>>;
 
 export function Playlists():Promise<Array<store.Playlist>>;
+
+export function Plugins():Promise<Array<plugin.Info>>;
 
 export function QueueAddNext(arg1:music.Song):Promise<queue.State>;
 
@@ -46,14 +53,24 @@ export function RecentPlays():Promise<Array<music.Song>>;
 
 export function RecordPlay(arg1:music.Song):Promise<void>;
 
+export function ReloadPlugins():Promise<Array<plugin.Info>>;
+
 export function RemoveFromPlaylist(arg1:number,arg2:string):Promise<void>;
 
 export function RenamePlaylist(arg1:number,arg2:string):Promise<void>;
+
+export function ResolveSong(arg1:music.Song):Promise<string>;
 
 export function SaveConfig(arg1:main.AppConfig):Promise<void>;
 
 export function ScanMusic(arg1:string):Promise<Array<music.Song>>;
 
+export function SearchOnline(arg1:string,arg2:string,arg3:number):Promise<plugin.SearchResult>;
+
 export function SelectFolder():Promise<string>;
 
+export function SetPluginEnabled(arg1:string,arg2:boolean):Promise<void>;
+
 export function ToggleFavorite(arg1:music.Song):Promise<boolean>;
+
+export function UninstallPlugin(arg1:string):Promise<void>;

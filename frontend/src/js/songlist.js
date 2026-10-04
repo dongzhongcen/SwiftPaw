@@ -4,7 +4,7 @@
 import { icons } from './icons.js';
 import { isFavorite, toggleFavorite, addNext, addToPlaylist } from './actions.js';
 import { loadedSongKey } from './player.js';
-import { escapeHtml, displayName, songKey, guard } from './util.js';
+import { escapeHtml, displayName, songKey, isOnline, guard } from './util.js';
 
 // 行尾可以出现的操作按钮
 const rowActions = {
@@ -64,12 +64,14 @@ function createRow(item, number, actions, options) {
   const row = document.createElement('div');
   row.className = 'song-row';
   row.dataset.key = songKey(song);
-  row.title = song.path || '';
+  row.title = isOnline(song) ? `来自插件：${song.source}` : song.path || '';
+  // 本地歌曲显示格式（MP3、FLAC），在线歌曲显示来自哪个平台
+  const chip = isOnline(song) ? song.source : song.format;
   row.innerHTML = `
     <span class="col-index"><span class="num">${String(number).padStart(2, '0')}</span><span class="eq">${icons.play}</span></span>
     <span class="col-title">
       <span class="title-text">${escapeHtml(displayName(song))}</span>
-      ${song.format ? `<span class="chip">${escapeHtml(song.format)}</span>` : ''}
+      ${chip ? `<span class="chip${isOnline(song) ? ' online' : ''}">${escapeHtml(chip)}</span>` : ''}
     </span>
     <span class="col-artist">${escapeHtml(song.artist || '未知歌手')}</span>
     <span class="col-album">${escapeHtml(song.album || '')}</span>

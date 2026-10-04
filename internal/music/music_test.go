@@ -52,3 +52,15 @@ func TestScanFallsBackToFileName(t *testing.T) {
 		t.Errorf("mp3 没读对：%+v", s)
 	}
 }
+
+func TestSongKey(t *testing.T) {
+	local := Song{Path: `D:\音乐\晴天.mp3`, Source: LocalSource}
+	old := Song{Path: `D:\音乐\旧数据.mp3`} // 旧版本保存的歌没有 source 字段
+	online := Song{Source: "archive", ID: "abc123", Path: ""}
+	if local.IsOnline() || old.IsOnline() || !online.IsOnline() {
+		t.Fatal("IsOnline 判断不对")
+	}
+	if local.Key() != `D:\音乐\晴天.mp3` || old.Key() != `D:\音乐\旧数据.mp3` || online.Key() != "archive:abc123" {
+		t.Fatalf("Key 不对：%q %q %q", local.Key(), old.Key(), online.Key())
+	}
+}

@@ -51,13 +51,13 @@ function frame(title, body, buttons) {
 }
 
 // promptDialog 让用户输入一段文字，取消时返回 null
-export function promptDialog({ title, label = '', value = '', placeholder = '', okText = '确定' }) {
+export function promptDialog({ title, label = '', value = '', placeholder = '', okText = '确定', maxLength = 200 }) {
   return open((d, done) => {
     d.innerHTML = frame(
       title,
       `<label class="dialog-field">
         <span>${escapeHtml(label)}</span>
-        <input class="text-input" name="value" maxlength="200" autocomplete="off"
+        <input class="text-input" name="value" maxlength="${Number(maxLength)}" autocomplete="off"
           value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}" autofocus />
       </label>`,
       `<button type="button" class="btn" data-role="cancel">取消</button>

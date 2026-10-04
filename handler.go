@@ -9,11 +9,13 @@ import (
 	"musicplayer/internal/music"
 )
 
-// MusicHandler 负责把本地音频文件和封面图片提供给前端
-type MusicHandler struct{}
+// MusicHandler 负责把本地音频文件、封面图片和在线歌曲（通过代理）提供给前端
+type MusicHandler struct {
+	stream http.Handler // 在线歌曲的播放代理
+}
 
-func NewMusicHandler() *MusicHandler {
-	return &MusicHandler{}
+func NewMusicHandler(stream http.Handler) *MusicHandler {
+	return &MusicHandler{stream: stream}
 }
 
 func (h *MusicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +24,8 @@ func (h *MusicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.serveMusic(w, r)
 	case "/cover":
 		h.serveCover(w, r)
+	case "/stream":
+		h.stream.ServeHTTP(w, r)
 	default:
 		http.NotFound(w, r)
 	}
