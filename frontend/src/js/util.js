@@ -15,9 +15,16 @@ export function displayName(song) {
   return song?.title || song?.name || '未知歌曲';
 }
 
-// songKey 是一首歌的唯一标识，和 Go 里 store.Key 的规则一致：本地歌曲就是文件路径
+// isOnline 判断是不是插件搜到的在线歌曲（本地歌曲的 source 是 local，旧数据里是空的）
+export function isOnline(song) {
+  return !!song?.source && song.source !== 'local';
+}
+
+// songKey 是一首歌的唯一标识，和 Go 里 Song.Key 的规则一致：
+// 本地歌曲是文件路径，在线歌曲是“平台:id”
 export function songKey(song) {
-  return song?.path || '';
+  if (!song) return '';
+  return isOnline(song) ? `${song.source}:${song.id}` : song.path || '';
 }
 
 // formatTime 把秒数变成 3:07 这样的格式

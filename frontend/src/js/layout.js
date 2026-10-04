@@ -27,6 +27,12 @@ export const layoutHtml = `
         <button class="nav-item" type="button" data-view="lyrics">
           ${icons.lyrics}<span class="nav-label">歌词</span>
         </button>
+        <button class="nav-item" type="button" data-view="online">
+          ${icons.globe}<span class="nav-label">在线搜索</span>
+        </button>
+        <button class="nav-item" type="button" data-view="plugins">
+          ${icons.plugin}<span class="nav-label">插件</span>
+        </button>
       </nav>
 
       <div class="nav-section">

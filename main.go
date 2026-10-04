@@ -22,7 +22,7 @@ func main() {
 		MinHeight: 600,
 		AssetServer: &assetserver.Options{
 			Assets:  assets,
-			Handler: NewMusicHandler(),
+			Handler: NewMusicHandler(app.stream),
 		},
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 1},
 		OnStartup:        app.startup,

@@ -145,7 +145,7 @@ func (q *Queue) AddNext(song music.Song) State {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	if i := slices.IndexFunc(q.songs, func(s music.Song) bool { return s.Path == song.Path }); i >= 0 {
+	if i := slices.IndexFunc(q.songs, func(s music.Song) bool { return s.Key() == song.Key() }); i >= 0 {
 		if i == q.current() {
 			return q.state() // 正在放的就是它，不用动
 		}

@@ -193,3 +193,20 @@ func TestPlayAtAndEmptyQueue(t *testing.T) {
 		t.Errorf("PlayAt(2) 应该放 song2，实际 %q", currentPath(s))
 	}
 }
+
+func TestAddNextOnlineSong(t *testing.T) {
+	q := NewWithSeed(1)
+	a := music.Song{Source: "p", ID: "1", Title: "在线1"}
+	b := music.Song{Source: "p", ID: "2", Title: "在线2"}
+	c := music.Song{Source: "p", ID: "3", Title: "在线3"}
+	q.Replace([]music.Song{a, b, c}, 0)
+	// 在线歌曲没有 Path，要按 Key 判断是不是同一首，不能把所有在线歌曲当成一首
+	st := q.AddNext(c)
+	if len(st.Songs) != 3 || st.Songs[st.Upcoming[0]].ID != "3" {
+		t.Fatalf("AddNext 在线歌曲不对：%+v", st)
+	}
+	st = q.AddNext(music.Song{Source: "p", ID: "4", Title: "新的"})
+	if len(st.Songs) != 4 || st.Songs[st.Upcoming[0]].ID != "4" {
+		t.Fatalf("AddNext 新的在线歌曲不对：%+v", st)
+	}
+}

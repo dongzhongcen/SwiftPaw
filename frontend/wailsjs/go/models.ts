@@ -85,6 +85,11 @@ export namespace music {
 	    artist: string;
 	    album: string;
 	    format: string;
+	    source: string;
+	    id: string;
+	    artwork: string;
+	    duration: number;
+	    extra?: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new Song(source);
@@ -98,7 +103,83 @@ export namespace music {
 	        this.artist = source["artist"];
 	        this.album = source["album"];
 	        this.format = source["format"];
+	        this.source = source["source"];
+	        this.id = source["id"];
+	        this.artwork = source["artwork"];
+	        this.duration = source["duration"];
+	        this.extra = source["extra"];
 	    }
+	}
+
+}
+
+export namespace plugin {
+	
+	export class Info {
+	    id: string;
+	    platform: string;
+	    version: string;
+	    author: string;
+	    srcUrl: string;
+	    supportedSearchType: string[];
+	    enabled: boolean;
+	    canSearch: boolean;
+	    canPlay: boolean;
+	    canLyric: boolean;
+	    error: string;
+	    missing: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Info(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.platform = source["platform"];
+	        this.version = source["version"];
+	        this.author = source["author"];
+	        this.srcUrl = source["srcUrl"];
+	        this.supportedSearchType = source["supportedSearchType"];
+	        this.enabled = source["enabled"];
+	        this.canSearch = source["canSearch"];
+	        this.canPlay = source["canPlay"];
+	        this.canLyric = source["canLyric"];
+	        this.error = source["error"];
+	        this.missing = source["missing"];
+	    }
+	}
+	export class SearchResult {
+	    isEnd: boolean;
+	    data: music.Song[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SearchResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.isEnd = source["isEnd"];
+	        this.data = this.convertValues(source["data"], music.Song);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = this.convertValues(a[key], classs);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

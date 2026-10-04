@@ -177,3 +177,47 @@ func TestDataSurvivesReopen(t *testing.T) {
 		t.Fatalf("重新打开后数据应该还在：%+v", songs)
 	}
 }
+
+func TestOnlineSongs(t *testing.T) {
+	s := openTemp(t)
+	online := music.Song{
+		Title: "在线歌曲", Artist: "歌手", Source: "archive", ID: "item-1",
+		Artwork: "https://example.com/a.jpg", Duration: 201.5,
+		Extra: []byte(`{"id":"item-1","bigNumber":12345678901234567890,"nested":{"k":"v"}}`),
+	}
+	liked, err := s.ToggleFavorite(online)
+	if err != nil || !liked {
+		t.Fatalf("收藏在线歌曲失败：%v %v", liked, err)
+	}
+	keys, _ := s.FavoriteKeys()
+	if len(keys) != 1 || keys[0] != "archive:item-1" {
+		t.Fatalf("在线歌曲的 key 应该是 平台:id，实际 %v", keys)
+	}
+
+	p, _ := s.CreatePlaylist("混合歌单")
+	if n, err := s.AddToPlaylist(p.ID, song(1), online, online); err != nil || n != 2 {
+		t.Fatalf("本地 + 在线歌曲加到歌单：n=%d err=%v", n, err)
+	}
+	songs, _ := s.PlaylistSongs(p.ID)
+	if len(songs) != 2 || songs[1].Key() != "archive:item-1" || songs[1].Artwork != online.Artwork || songs[1].Duration != 201.5 {
+		t.Fatalf("在线歌曲读回来不对：%+v", songs)
+	}
+	// 插件的原始数据要原样保存，大整数不能丢精度
+	if !strings.Contains(string(songs[1].Extra), "12345678901234567890") {
+		t.Fatalf("Extra 丢了：%s", songs[1].Extra)
+	}
+	if err := s.RemoveFromPlaylist(p.ID, Key(online)); err != nil {
+		t.Fatal(err)
+	}
+	if songs, _ := s.PlaylistSongs(p.ID); len(songs) != 1 {
+		t.Fatalf("按 key 删除在线歌曲失败：%+v", songs)
+	}
+
+	if err := s.RecordPlay(online); err != nil {
+		t.Fatal(err)
+	}
+	recent, _ := s.RecentPlays(0)
+	if len(recent) != 1 || recent[0].ID != "item-1" {
+		t.Fatalf("最近播放里没有在线歌曲：%+v", recent)
+	}
+}

@@ -8,11 +8,12 @@ import {
   QueuePrevious,
   QueueSetMode,
   RecordPlay,
+  ResolveSong,
 } from '../../wailsjs/go/main/App';
 import { icons } from './icons.js';
 import { saveConfig } from './config.js';
 import { state, on, emit, currentSong } from './state.js';
-import { $, displayName, songKey, formatTime, toast, guard } from './util.js';
+import { $, displayName, songKey, isOnline, formatTime, toast, guard, errorText } from './util.js';
 
 // 播放模式，顺序就是点“模式”按钮时的切换顺序
 export const playModes = [
@@ -80,14 +81,7 @@ export function initPlayer() {
   // 某首歌放不了（比如格式不支持或文件被删了），提示一下并跳到下一首
   player.addEventListener('error', guard(async () => {
     if (!loadedKey) return;
-    errorStreak++;
-    const name = $('pb-title').textContent;
-    if (errorStreak >= state.queue.songs.length) {
-      toast(`无法播放：${name}，队列里的歌都放不了，已停止`, true);
-      return;
-    }
-    toast(`无法播放：${name}，已跳到下一首`, true);
-    await applyQueue(await QueueNext(false), true, true);
+    await skipBroken($('pb-title').textContent, '');
   }));
 
   player.addEventListener('volumechange', () => {
@@ -120,10 +114,23 @@ export async function applyQueue(newQueue, play, keepError = false) {
     loadedKey = '';
     emit('song-changed', null);
   } else if (songKey(song) !== loadedKey) {
-    loadedKey = songKey(song);
+    const key = songKey(song);
+    loadedKey = key;
     recordedKey = '';
-    player.src = await mediaUrl(song);
     emit('song-changed', song);
+    let url;
+    try {
+      url = await mediaUrl(song);
+    } catch (err) {
+      // 在线歌曲拿不到播放地址（插件出错、网络不通等）：提示原因并跳过
+      player.removeAttribute('src');
+      player.load();
+      emit('queue-changed', state.queue);
+      await skipBroken(displayName(song), `（${errorText(err)}）`);
+      return;
+    }
+    if (loadedKey !== key) return; // 等插件返回地址的时候用户又换了歌
+    player.src = url;
   } else if (play) {
     player.currentTime = 0; // 同一首歌再放一次（比如单曲循环），从头开始
   }
@@ -137,8 +144,21 @@ export async function applyQueue(newQueue, play, keepError = false) {
   saveConfig({ lastSong: loadedKey, playMode: state.queue.mode });
 }
 
-// mediaUrl 返回 <audio> 要加载的地址。本地文件由 Go 的 /music 路由提供。
+// skipBroken 某首歌放不了时提示一下并跳到下一首；整个队列都放不了时停下来，防止无限跳歌
+async function skipBroken(name, reason) {
+  errorStreak++;
+  if (errorStreak >= state.queue.songs.length) {
+    toast(`无法播放：${name}${reason}，队列里的歌都放不了，已停止`, true);
+    return;
+  }
+  toast(`无法播放：${name}${reason}，已跳到下一首`, true);
+  await applyQueue(await QueueNext(false), true, true);
+}
+
+// mediaUrl 返回 <audio> 要加载的地址。
+// 本地文件由 Go 的 /music 路由提供；在线歌曲先问插件要地址，再通过 Go 的 /stream 代理播放。
 async function mediaUrl(song) {
+  if (isOnline(song)) return ResolveSong(song);
   return '/music?path=' + encodeURIComponent(song.path);
 }
 
@@ -262,14 +282,17 @@ export function updateTrackView(song) {
   $('pb-title').textContent = displayName(song);
   $('pb-title').title = displayName(song);
   $('pb-artist').textContent = [song.artist || '未知歌手', song.album].filter(Boolean).join(' · ');
-  cover.hidden = false;
+  const url = coverUrl(song);
+  cover.hidden = !url;
   cover.onerror = () => {
     cover.hidden = true;
   };
-  cover.src = coverUrl(song);
+  if (url) cover.src = url;
+  else cover.removeAttribute('src');
 }
 
-// coverUrl 返回封面地址：本地歌曲从文件标签里读
+// coverUrl 返回封面地址：本地歌曲从文件标签里读，在线歌曲用插件给的图片地址（没有时返回空字符串）
 export function coverUrl(song) {
+  if (isOnline(song)) return song.artwork || '';
   return '/cover?path=' + encodeURIComponent(song.path);
 }

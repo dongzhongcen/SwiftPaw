@@ -8,8 +8,10 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"musicplayer/internal/music"
+	"musicplayer/internal/plugin"
 	"musicplayer/internal/queue"
 	"musicplayer/internal/store"
+	"musicplayer/internal/stream"
 )
 
 // App 是绑定给前端调用的对象，前端通过 wailsjs/go/main/App.js 调用这里的公开方法
@@ -19,10 +21,13 @@ type App struct {
 	queue   *queue.Queue // 播放队列
 	store   *store.Store // 歌单、收藏、最近播放（SQLite）
 	dbErr   error        // 数据库打不开时记下原因，调用歌单相关方法时返回给前端
+
+	plugins *plugin.Manager // 插件管理器；找不到配置文件夹时为 nil
+	stream  *stream.Proxy   // 在线歌曲的播放代理，前端用 /stream?id=... 播放
 }
 
 func NewApp() *App {
-	return &App{queue: queue.New()}
+	return &App{queue: queue.New(), stream: stream.New(nil)}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -33,6 +38,7 @@ func (a *App) startup(ctx context.Context) {
 		err = os.MkdirAll(dir, 0755)
 	}
 	if err == nil {
+		a.startPlugins(dir)
 		a.store, err = store.Open(filepath.Join(dir, "swiftpaw.db"))
 	}
 	a.dbErr = err
@@ -41,6 +47,9 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) shutdown(ctx context.Context) {
 	if a.store != nil {
 		a.store.Close()
+	}
+	if a.plugins != nil {
+		a.plugins.Close()
 	}
 }
 

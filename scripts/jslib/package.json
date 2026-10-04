@@ -1,0 +1,19 @@
+{
+  "name": "swiftpaw-plugin-libs",
+  "private": true,
+  "description": "插件运行时内置的 JS 库，用 esbuild 打包成一个文件，嵌入到 Go 程序里",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "big-integer": "^1.6.52",
+    "cheerio": "^1.0.0",
+    "crypto-js": "^4.2.0",
+    "dayjs": "^1.11.13",
+    "he": "^1.2.0",
+    "qs": "^6.13.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

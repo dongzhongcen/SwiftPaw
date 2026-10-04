@@ -1,0 +1,47 @@
+/* 在线搜索页 */
+.online-form {
+    display: flex;
+    gap: 8px;
+    padding: 16px 28px 12px;
+}
+
+.online-form .text-input {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+}
+
+.online-form .btn {
+    height: 36px;
+}
+
+.select {
+    flex: none;
+    max-width: 220px;
+    height: 36px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-input);
+    padding: 0 10px;
+    color: var(--fg);
+    cursor: pointer;
+}
+
+.online-results {
+    padding: 0 16px 16px;
+}
+
+.online-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px 0 6px;
+}
+
+/* 在线歌曲在列表里显示平台名 */
+.chip.online {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -213,7 +213,7 @@ func (s *Store) ToggleFavorite(song music.Song) (bool, error) {
 	return err == nil, err
 }
 
-// FavoriteKeys 返回所有收藏歌曲的 key，前端用它来显示红心
+// FavoriteKeys 返回所有收藏歌曲的 key（本地是路径，在线是“平台:id”），前端用它来显示红心
 func (s *Store) FavoriteKeys() ([]string, error) {
 	rows, err := s.db.Query(`SELECT song_key FROM playlist_songs WHERE playlist_id = ?`, FavoritesID)
 	if err != nil {
@@ -272,9 +272,9 @@ func (s *Store) ClearHistory() error {
 
 // ---- 工具函数 ----
 
-// Key 是一首歌在数据库里的唯一标识。本地歌曲就是文件路径。
+// Key 是一首歌在数据库里的唯一标识：本地歌曲是文件路径，在线歌曲是“平台:id”（规则见 music.Song.Key）
 func Key(song music.Song) string {
-	return song.Path
+	return song.Key()
 }
 
 func (s *Store) querySongs(query string, args ...any) ([]music.Song, error) {
