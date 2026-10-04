@@ -118,6 +118,17 @@ Both the zip and the install folder include `LICENSE`, `THIRD_PARTY_NOTICES.md` 
 2. Click a song to start playing; click the heart after a song to add it to favorites, or add it to a playlist
 3. To search for songs online: open the "Plugins" (插件) page → "Install from file" (从文件安装), choose [`examples/plugins/archive-org.js`](examples/plugins/archive-org.js), then search on the "Online search" (在线搜索) page
 
+### Using the Jamendo Plugin
+
+[`examples/plugins/jamendo.js`](examples/plugins/jamendo.js) searches and plays music from Jamendo through the official Jamendo API. It supports song search, playback in several qualities, and lyrics (when a song has them). You need your own Client ID:
+
+1. Sign up and log in at [devportal.jamendo.com](https://devportal.jamendo.com), then create an app
+2. Copy the app's Client ID
+3. Open the "Plugins" (插件) page → "Install from file" (从文件安装) and choose `examples/plugins/jamendo.js`, or use "Install from URL" (从网址安装) with `https://raw.githubusercontent.com/dongzhongcen/SwiftPaw/main/examples/plugins/jamendo.js`
+4. Click "Settings" (「设置」) on the Jamendo plugin, paste the Client ID into the "Client ID" field and save, then search on the "Online search" (在线搜索) page
+
+If the Client ID is missing or wrong, the plugin tells you to check it in 「设置」. Music on Jamendo is published by its artists under Creative Commons licenses, and each track may use a different license; you must follow [Jamendo's API terms of use](https://devportal.jamendo.com/api_terms_of_use) and the track's license. Lossless quality is only offered for tracks whose artists allow downloads.
+
 ### Running from Source
 
 You'll need:
@@ -189,4 +200,4 @@ If you have questions or suggestions, feel free to open an [Issue](https://githu
 
 This software does not provide any music sources and does not include any third-party platform plugins. Plugins are installed by users themselves, and users and plugin authors are responsible for their content and legality. Please comply with local laws and the terms of service of each platform, and use this software only for personal learning and lawful purposes.
 
-The example plugin in this repository, `examples/plugins/archive-org.js`, is written by this project and only searches public-domain audio on the Internet Archive.
+The example plugins in this repository, `examples/plugins/archive-org.js` and `examples/plugins/jamendo.js`, are written by this project: the first only searches public-domain audio on the Internet Archive; the second accesses Creative Commons–licensed music through the official Jamendo API, and requires users to get their own Client ID and follow Jamendo's API terms of use.
