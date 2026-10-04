@@ -6,12 +6,17 @@ import './css/layout.css';
 import './css/player.css';
 import './css/songlist.css';
 import './css/dialog.css';
+import './css/lyrics.css';
+import './css/settings.css';
 
 import { QueueSetMode } from '../wailsjs/go/main/App';
 import { layoutHtml } from './js/layout.js';
 import { initPlayer, applyQueue, setVolume, togglePlay } from './js/player.js';
 import { initSidebar } from './js/sidebar.js';
 import { initViews, showView } from './js/views.js';
+import { initLyrics } from './js/lyrics.js';
+import { initSettings } from './js/settings.js';
+import { applyTheme } from './js/theme.js';
 import { refreshFavorites, refreshPlaylists, toggleFavorite, isFavorite } from './js/actions.js';
 import { loadFolder } from './js/library.js';
 import { loadConfig, finishRestoring } from './js/config.js';
@@ -24,6 +29,9 @@ document.querySelector('#app').innerHTML = layoutHtml;
 initPlayer();
 initSidebar();
 initViews();
+initLyrics();
+initSettings();
+initCoverButton();
 initFavoriteButton();
 initKeyboard();
 startApp();
@@ -31,6 +39,7 @@ startApp();
 async function startApp() {
   try {
     const config = await loadConfig();
+    applyTheme(config.theme);
     setVolume(config.volume);
     await applyQueue(await QueueSetMode(config.playMode || 'sequence'), false);
     await Promise.all([refreshPlaylists(), refreshFavorites()]).catch(showError);
@@ -65,6 +74,14 @@ function initFavoriteButton() {
   }));
   on('song-changed', update);
   on('favorites-changed', update);
+}
+
+// 点播放栏的封面打开歌词页，再点一次回到之前的页面
+function initCoverButton() {
+  $('cover-btn').addEventListener('click', () => {
+    if (state.view === 'lyrics') showView(state.previousView || 'library');
+    else showView('lyrics');
+  });
 }
 
 // 空格键：播放 / 暂停（焦点在输入框里或者对话框打开时不处理）

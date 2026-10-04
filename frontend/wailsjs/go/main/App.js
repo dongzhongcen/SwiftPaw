@@ -22,6 +22,10 @@ export function FavoriteKeys() {
   return window['go']['main']['App']['FavoriteKeys']();
 }
 
+export function GetLyrics(arg1) {
+  return window['go']['main']['App']['GetLyrics'](arg1);
+}
+
 export function LoadConfig() {
   return window['go']['main']['App']['LoadConfig']();
 }
