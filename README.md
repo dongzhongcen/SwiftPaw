@@ -7,6 +7,8 @@
 ![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%2010%20%2F%2011-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
 
+![极拍的主界面（深色主题）](docs/screenshots/dark.png)
+
 ## 简介
 
 极拍（SwiftPaw）是我用 Go 和 [Wails](https://wails.io) 写的一个 Windows 桌面音乐播放器。
@@ -41,6 +43,14 @@
 
 **外观**
 - 深色 / 浅色 / 跟随系统三种主题
+
+## 界面截图
+
+截图里本地音乐的歌都是我自己生成的测试音频，歌词也是我随手写的；在线搜索用的是仓库里的示例插件。
+
+| 浅色主题 | 歌词 | 在线搜索 |
+| :---: | :---: | :---: |
+| ![浅色主题](docs/screenshots/light.png) | ![歌词页](docs/screenshots/lyrics.png) | ![用示例插件在线搜索](docs/screenshots/online.png) |
 
 ## 项目结构
 
