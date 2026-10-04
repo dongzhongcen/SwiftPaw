@@ -1,8 +1,10 @@
-// 设置页里的“关于”：版本号和项目主页
+// 设置页里的“关于”：版本号、项目主页、开源许可和免责声明
 
 import { AppVersion } from '../../wailsjs/go/main/App';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
+import { DISCLAIMER } from './disclaimer.js';
 import { addSettingsSection } from './settings.js';
+import { escapeHtml } from './util.js';
 
 const REPO_URL = 'https://github.com/dongzhongcen/SwiftPaw';
 
@@ -24,6 +26,18 @@ export function initAbout() {
             <div class="settings-hint">源代码、问题反馈和更新日志都在这里</div>
           </div>
           <button class="btn" type="button" id="about-repo">打开 GitHub</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">开源许可</div>
+            <div class="settings-hint">MIT 许可证；用到的第三方开源软件见安装文件夹里的 THIRD_PARTY_NOTICES.md</div>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">免责声明</div>
+            <div class="settings-hint" id="about-disclaimer">${escapeHtml(DISCLAIMER)}</div>
+          </div>
         </div>
       </section>`,
     bind: (body) => {

@@ -50,7 +50,7 @@ func TestBundledLibs(t *testing.T) {
 		module.exports = {
 			platform: "libs",
 			run() {
-				const $ = cheerio.load('<ul id="list"><li class="song" data-id="1">晴天</li><li class="song" data-id="2">稻香</li></ul>');
+				const $ = cheerio.load('<ul id="list"><li class="song" data-id="1">海边小路</li><li class="song" data-id="2">午后小调</li></ul>');
 				return [
 					qs.stringify({ a: 1, b: [1, 2], c: { d: "你" } }),
 					JSON.stringify(qs.parse("x=1&y[]=2&y[]=3")),
@@ -61,7 +61,7 @@ func TestBundledLibs(t *testing.T) {
 				].join(" | ");
 			},
 		};`, 0)
-	want := "a=1&b%5B0%5D=1&b%5B1%5D=2&c%5Bd%5D=%E4%BD%A0 | {\"x\":\"1\",\"y\":[\"2\",\"3\"]} | 2026-10-05T08:00:00.000Z | <b>&你 | 123456789012345678901234567891 | 1:晴天,2:稻香"
+	want := "a=1&b%5B0%5D=1&b%5B1%5D=2&c%5Bd%5D=%E4%BD%A0 | {\"x\":\"1\",\"y\":[\"2\",\"3\"]} | 2026-10-05T08:00:00.000Z | <b>&你 | 123456789012345678901234567891 | 1:海边小路,2:午后小调"
 	if got := callString(t, rt, "run"); got != want {
 		t.Fatalf("内置库结果不对：\n得到 %s\n期望 %s", got, want)
 	}

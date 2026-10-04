@@ -28,7 +28,7 @@ func TestScanFallsBackToFileName(t *testing.T) {
 		t.Fatal(err)
 	}
 	// 内容是假的，读不出标签，应该用文件名当歌名
-	for _, p := range []string{filepath.Join(dir, "晴天.mp3"), filepath.Join(sub, "稻香.flac"), filepath.Join(dir, "封面.jpg")} {
+	for _, p := range []string{filepath.Join(dir, "海边小路.mp3"), filepath.Join(sub, "午后小调.flac"), filepath.Join(dir, "封面.jpg")} {
 		if err := os.WriteFile(p, []byte("not really audio"), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -45,22 +45,22 @@ func TestScanFallsBackToFileName(t *testing.T) {
 	for _, s := range songs {
 		byTitle[s.Title] = s
 	}
-	if s, ok := byTitle["稻香"]; !ok || s.Format != "FLAC" || s.Artist != "未知歌手" {
+	if s, ok := byTitle["午后小调"]; !ok || s.Format != "FLAC" || s.Artist != "未知歌手" {
 		t.Errorf("子文件夹里的 flac 没读对：%+v", s)
 	}
-	if s, ok := byTitle["晴天"]; !ok || s.Format != "MP3" {
+	if s, ok := byTitle["海边小路"]; !ok || s.Format != "MP3" {
 		t.Errorf("mp3 没读对：%+v", s)
 	}
 }
 
 func TestSongKey(t *testing.T) {
-	local := Song{Path: `D:\音乐\晴天.mp3`, Source: LocalSource}
+	local := Song{Path: `D:\音乐\海边小路.mp3`, Source: LocalSource}
 	old := Song{Path: `D:\音乐\旧数据.mp3`} // 旧版本保存的歌没有 source 字段
 	online := Song{Source: "archive", ID: "abc123", Path: ""}
 	if local.IsOnline() || old.IsOnline() || !online.IsOnline() {
 		t.Fatal("IsOnline 判断不对")
 	}
-	if local.Key() != `D:\音乐\晴天.mp3` || old.Key() != `D:\音乐\旧数据.mp3` || online.Key() != "archive:abc123" {
+	if local.Key() != `D:\音乐\海边小路.mp3` || old.Key() != `D:\音乐\旧数据.mp3` || online.Key() != "archive:abc123" {
 		t.Fatalf("Key 不对：%q %q %q", local.Key(), old.Key(), online.Key())
 	}
 }

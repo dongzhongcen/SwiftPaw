@@ -1,4 +1,4 @@
-/* 自定义对话框（输入、确认、选择） */
+/* 自定义对话框（输入、确认、选择、表单） */
 .dialog {
     width: min(420px, calc(100vw - 48px));
     border: 1px solid var(--border-strong);
@@ -30,10 +30,31 @@
     font-size: 13px;
 }
 
+.dialog-fields {
+    display: grid;
+    gap: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.dialog-message + .dialog-fields {
+    margin-top: 16px;
+}
+
+/* 输入框下面的说明文字 */
+.dialog-hint {
+    color: var(--fg-faint);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
 .dialog-message {
     margin: 0;
     color: var(--fg-muted);
     line-height: 1.6;
+    white-space: pre-line; /* 文字里的换行 \n 会显示成换行 */
+    overflow-wrap: anywhere; /* 很长的网址也能折行 */
 }
 
 .dialog-buttons {

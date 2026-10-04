@@ -11,7 +11,7 @@ import (
 	"musicplayer/internal/plugin"
 )
 
-// 插件相关的方法：安装、卸载、启用/停用、在线搜索、解析播放地址
+// 插件相关的方法：安装、卸载、启用/停用、插件设置、在线搜索、解析播放地址
 
 // errNoPlugins 在插件管理器没能创建时返回（比如找不到配置文件夹）
 var errNoPlugins = errors.New("插件功能不可用：找不到保存插件的文件夹")
@@ -80,6 +80,22 @@ func (a *App) SetPluginEnabled(id string, enabled bool) error {
 		return errNoPlugins
 	}
 	return a.plugins.SetEnabled(id, enabled)
+}
+
+// PluginUserVariables 返回用户给某个插件填过的设置（变量名 -> 值），打开“设置”对话框时用
+func (a *App) PluginUserVariables(id string) (map[string]string, error) {
+	if a.plugins == nil {
+		return nil, errNoPlugins
+	}
+	return a.plugins.UserVariables(id)
+}
+
+// SetPluginUserVariables 保存插件设置，并重新加载这个插件让设置马上生效，返回最新的插件信息
+func (a *App) SetPluginUserVariables(id string, values map[string]string) (plugin.Info, error) {
+	if a.plugins == nil {
+		return plugin.Info{}, errNoPlugins
+	}
+	return a.plugins.SetUserVariables(id, values)
 }
 
 // ReloadPlugins 重新加载插件文件夹，返回最新的插件列表

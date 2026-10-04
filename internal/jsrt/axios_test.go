@@ -55,7 +55,7 @@ func TestAxios(t *testing.T) {
 			platform: "axios",
 			async get() {
 				const res = await axios.get(base + "/echo?x=0", {
-					params: { q: "晴天 周杰伦", page: 2, list: [1, 2], skip: undefined },
+					params: { q: "海边小路 测试歌手", page: 2, list: [1, 2], skip: undefined },
 					headers: { Referer: "https://example.com/", "User-Agent": "TestUA" },
 				});
 				return [res.status, res.data.method, res.data.query, res.data.ua, res.data.referer,
@@ -129,7 +129,7 @@ func TestAxios(t *testing.T) {
 		};`, 0)
 
 	cases := []struct{ fn, want string }{
-		{"get", "200|GET|x=0&q=%E6%99%B4%E5%A4%A9+%E5%91%A8%E6%9D%B0%E4%BC%A6&page=2&list[]=1&list[]=2|TestUA|https://example.com/|application/json|a=1;b=2"},
+		{"get", "200|GET|x=0&q=%E6%B5%B7%E8%BE%B9%E5%B0%8F%E8%B7%AF+%E6%B5%8B%E8%AF%95%E6%AD%8C%E6%89%8B&page=2&list[]=1&list[]=2|TestUA|https://example.com/|application/json|a=1;b=2"},
 		{"postJSON", `application/json|{"name":"你好","n":1}`},
 		{"postString", "application/x-www-form-urlencoded|a=1&b=2"},
 		{"postForm", "application/x-www-form-urlencoded|a=x+y&b=2"},

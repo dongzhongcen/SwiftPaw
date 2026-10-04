@@ -35,6 +35,8 @@ export function PlaylistSongs(arg1:number):Promise<Array<music.Song>>;
 
 export function Playlists():Promise<Array<store.Playlist>>;
 
+export function PluginUserVariables(arg1:string):Promise<Record<string, string>>;
+
 export function Plugins():Promise<Array<plugin.Info>>;
 
 export function QueueAddNext(arg1:music.Song):Promise<queue.State>;
@@ -72,6 +74,8 @@ export function SearchOnline(arg1:string,arg2:string,arg3:number):Promise<plugin
 export function SelectFolder():Promise<string>;
 
 export function SetPluginEnabled(arg1:string,arg2:boolean):Promise<void>;
+
+export function SetPluginUserVariables(arg1:string,arg2:Record<string, string>):Promise<plugin.Info>;
 
 export function ToggleFavorite(arg1:music.Song):Promise<boolean>;
 

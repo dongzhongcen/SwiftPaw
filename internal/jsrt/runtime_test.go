@@ -48,11 +48,11 @@ func TestLoadMetaAndCall(t *testing.T) {
 	if !strings.Contains(string(meta), `"platform":"测试"`) || len(funcs) != 1 || funcs[0] != "search" {
 		t.Fatalf("Meta 不对：%s %v", meta, funcs)
 	}
-	raw, err := rt.Call("search", "晴天", 2)
+	raw, err := rt.Call("search", "海边小路", 2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(raw) != `{"isEnd":true,"data":[{"id":1,"title":"晴天2"}]}` {
+	if string(raw) != `{"isEnd":true,"data":[{"id":1,"title":"海边小路2"}]}` {
 		t.Fatalf("返回值不对：%s", raw)
 	}
 	if !rt.Has("search") || rt.Has("getLyric") {
@@ -170,15 +170,36 @@ func TestEnvAndGlobals(t *testing.T) {
 			platform: "env",
 			info() {
 				const u = new URL("https://example.com/a?x=1&y=%E4%BD%A0");
-				const sp = new URLSearchParams({ q: "晴天 周杰伦", page: 1 });
+				const sp = new URLSearchParams({ q: "海边小路 测试歌手", page: 1 });
 				return [env.appVersion, env.os, env.lang, JSON.stringify(env.getUserVariables()),
 					u.searchParams.get("y"), sp.toString(), btoa("abc"), atob("YWJj"),
 					Buffer.from("你好").toString("base64"), typeof setTimeout, typeof clearTimeout].join("|");
 			},
 		};`, 0)
-	want := "1.0.0|win32|zh-CN|{}|你|q=%E6%99%B4%E5%A4%A9+%E5%91%A8%E6%9D%B0%E4%BC%A6&page=1|YWJj|abc|5L2g5aW9|function|function"
+	want := "1.0.0|win32|zh-CN|{}|你|q=%E6%B5%B7%E8%BE%B9%E5%B0%8F%E8%B7%AF+%E6%B5%8B%E8%AF%95%E6%AD%8C%E6%89%8B&page=1|YWJj|abc|5L2g5aW9|function|function"
 	if got := callString(t, rt, "info"); got != want {
 		t.Fatalf("全局对象不对：\n得到 %s\n期望 %s", got, want)
+	}
+}
+
+func TestGetUserVariables(t *testing.T) {
+	rt, err := New(Options{Name: "设置", Env: Env{UserVariables: map[string]string{"key": "test-key", "region": "cn"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(rt.Close)
+	if err := rt.Load(`module.exports = {
+		platform: "vars",
+		read() {
+			const vars = env.getUserVariables();
+			vars.key = "被插件改了"; // 改返回的对象不影响下一次读取
+			return JSON.stringify(env.getUserVariables());
+		},
+	};`); err != nil {
+		t.Fatal(err)
+	}
+	if got := callString(t, rt, "read"); got != `{"key":"test-key","region":"cn"}` {
+		t.Fatalf("getUserVariables 不对：%s", got)
 	}
 }
 

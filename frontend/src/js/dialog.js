@@ -1,4 +1,4 @@
-// 自定义的对话框：输入框（prompt）、确认框（confirm）、选择框（pick）。
+// 自定义的对话框：输入框（prompt）、确认框（confirm）、选择框（pick）、多个输入框的表单（form）。
 // Wails 的 WebView 里 window.prompt 用不了，所以用 HTML 的 <dialog> 自己做一个。
 // 每个函数都返回 Promise，用法和原生的差不多：const name = await promptDialog({...})
 
@@ -116,6 +116,40 @@ export function pickDialog({ title, items, emptyText = '没有可选的项目' }
     d.querySelectorAll('.pick-item').forEach((button) => {
       button.onclick = () => done(items[Number(button.dataset.index)].value);
     });
+    d.querySelector('[data-role=cancel]').onclick = () => done(null);
+  });
+}
+
+// formDialog 一次填写多项内容（比如插件设置），保存时返回 { name: 值 }，取消返回 null。
+// fields: [{ name, label, hint, value }]：label 是输入框上面的名字，hint 是输入框下面的说明文字（可以不写）
+export function formDialog({ title, message = '', fields, okText = '保存', maxLength = 2000 }) {
+  return open((d, done) => {
+    const inputs = fields
+      .map(
+        (f, i) => `
+        <label class="dialog-field">
+          <span>${escapeHtml(f.label)}</span>
+          <input class="text-input" data-index="${i}" maxlength="${Number(maxLength)}" autocomplete="off" spellcheck="false"
+            value="${escapeHtml(f.value ?? '')}" placeholder="未填写" ${i === 0 ? 'autofocus' : ''} />
+          ${f.hint ? `<small class="dialog-hint">${escapeHtml(f.hint)}</small>` : ''}
+        </label>`,
+      )
+      .join('');
+    d.innerHTML = frame(
+      title,
+      `${message ? `<p class="dialog-message">${escapeHtml(message)}</p>` : ''}
+       <div class="dialog-fields">${inputs}</div>`,
+      `<button type="button" class="btn" data-role="cancel">取消</button>
+       <button type="submit" class="btn primary">${escapeHtml(okText)}</button>`,
+    );
+    d.querySelector('form').onsubmit = (event) => {
+      event.preventDefault();
+      const values = {};
+      d.querySelectorAll('input[data-index]').forEach((input) => {
+        values[fields[Number(input.dataset.index)].name] = input.value.trim();
+      });
+      done(values);
+    };
     d.querySelector('[data-role=cancel]').onclick = () => done(null);
   });
 }

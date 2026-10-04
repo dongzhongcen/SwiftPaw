@@ -2,6 +2,25 @@
 
 这里记录极拍 SwiftPaw 每个版本的改动。版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.0.1] - 2026-10-04
+
+### 新增
+
+- **插件设置（用户变量）**：插件可以在导出对象里用 `userVariables: [{ key, name, hint }]` 声明需要用户填写的设置（比如 API Key），`name` 和 `hint` 可以不写
+  - 插件页里声明了设置的插件会多一个“设置”按钮，打开对话框填写，保存后插件马上重新加载，不用重启
+  - 设置保存在本地的 `plugins.json`，插件通过 `env.getUserVariables()` 读取；更新、重新加载插件时保留，卸载插件时一起删除
+- **安装程序检查旧版本**：安装前先看有没有装过极拍
+  - 有旧版本时询问是否替换；相同版本询问是否重新安装；已安装的版本更新时提醒会降级
+  - 同意后先静默卸载旧版本，再装到原来的文件夹；歌单、收藏、插件和插件设置（在 `%AppData%\SwiftPaw`）都会保留
+  - 极拍正在运行时，提示先关闭再继续
+- **许可证**：项目使用 MIT 许可证（`LICENSE`）；`THIRD_PARTY_NOTICES.md` 改为由 `scripts/notices` 生成，列出编译进程序的 Go 模块、插件运行时内置的 JS 库和字体的许可证；压缩包和安装程序里都带上 `LICENSE`、`THIRD_PARTY_NOTICES.md` 和 `OFL.txt`
+- **免责声明**：README、设置页“关于”和“从网址安装插件”的确认框里都加了免责声明
+
+### 改动
+
+- 测试数据和注释里的歌名、歌手、歌词换成自己编的中性文字
+- 删除没用到的图片 `frontend/src/assets/images/logo-universal.png`
+
 ## [1.0.0] - 2026-10-04
 
 第一个正式版本。
@@ -31,4 +50,5 @@
   - 支持 FLAC、M4A、AAC、OGG、Opus、WAV
   - 播放队列：下一首播放、移除；顺序、单曲循环、随机（一轮内不重复）
 
+[1.0.1]: https://github.com/dongzhongcen/SwiftPaw/releases/tag/v1.0.1
 [1.0.0]: https://github.com/dongzhongcen/SwiftPaw/releases/tag/v1.0.0

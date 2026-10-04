@@ -79,7 +79,7 @@ func nameFromURL(rawURL string) string {
 // install 先在临时的运行环境里试运行插件，确认没问题后再保存到插件文件夹。
 // name 只用在错误信息里（这时还不知道插件的平台名）
 func (m *Manager) install(name string, source []byte) (Info, error) {
-	rt, info, err := m.evaluate(name, source)
+	rt, info, err := m.evaluate(name, source, nil) // 试运行时还不知道插件 id，不传设置
 	if rt != nil {
 		rt.Close()
 	}
@@ -93,13 +93,27 @@ func (m *Manager) install(name string, source []byte) (Info, error) {
 		return Info{}, err
 	}
 	// 同一个平台的旧版本插件先删掉（相当于更新）
+	id := safeFileName(info.Platform)
+	moved := false
 	for _, p := range m.plugins {
 		if p.info.Platform == info.Platform {
 			p.close()
 			_ = os.Remove(p.file)
+			// 旧文件名和新的不一样时（比如手动复制进来的），把用户填的设置搬到新 id 下，更新后不用重新填
+			if vars, ok := m.values[p.info.ID]; ok && p.info.ID != id {
+				if _, has := m.values[id]; !has {
+					m.values[id] = vars
+				}
+				delete(m.values, p.info.ID)
+				moved = true
+			}
 		}
 	}
-	id := safeFileName(info.Platform)
+	if moved {
+		if err := m.writeState(); err != nil {
+			return Info{}, err
+		}
+	}
 	target := filepath.Join(m.opts.Dir, id+".js")
 	tmp := target + ".tmp"
 	if err := os.WriteFile(tmp, source, 0o644); err != nil {

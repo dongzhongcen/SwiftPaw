@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"musicplayer/internal/jsrt"
 	"musicplayer/internal/music"
@@ -36,7 +38,8 @@ type Manager struct {
 
 	mu       sync.Mutex
 	plugins  []*loaded
-	disabled map[string]bool // 被停用的插件 id
+	disabled map[string]bool              // 被停用的插件 id
+	values   map[string]map[string]string // 用户填的设置：插件 id -> (变量名 -> 值)
 }
 
 // loaded 是一个已加载（或者加载失败）的插件
@@ -49,14 +52,20 @@ type loaded struct {
 // state 是 plugins.json 的内容
 type state struct {
 	Disabled []string `json:"disabled"`
+	// UserVariables 是用户在“插件设置”里填的值：插件 id -> (变量名 -> 值)。
+	// 旧版本的 plugins.json 里没有这一项，读出来就是空的，不需要额外迁移
+	UserVariables map[string]map[string]string `json:"userVariables,omitempty"`
 }
+
+// maxValueLength 是每个设置值的最大长度（字符数），防止误粘贴一大段内容
+const maxValueLength = 2000
 
 // NewManager 创建插件管理器，还不会加载插件，需要调用 LoadAll
 func NewManager(opts Options) *Manager {
 	if opts.HTTPClient == nil {
 		opts.HTTPClient = &http.Client{Timeout: 20 * time.Second}
 	}
-	return &Manager{opts: opts, disabled: map[string]bool{}}
+	return &Manager{opts: opts, disabled: map[string]bool{}, values: map[string]map[string]string{}}
 }
 
 // LoadAll 重新加载插件文件夹里所有的 .js 文件
@@ -102,7 +111,7 @@ func (m *Manager) loadFile(file string) *loaded {
 		p.info.Error = err.Error()
 		return p
 	}
-	rt, info, err := m.evaluate(id, source)
+	rt, info, err := m.evaluate(id, source, m.values[id])
 	if rt != nil {
 		info.Missing = rt.MissingModules()
 	}
@@ -119,12 +128,14 @@ func (m *Manager) loadFile(file string) *loaded {
 	return p
 }
 
-// evaluate 在新的运行环境里执行插件代码，读出插件信息
-func (m *Manager) evaluate(name string, source []byte) (*jsrt.Runtime, Info, error) {
+// evaluate 在新的运行环境里执行插件代码，读出插件信息。
+// vars 是用户给这个插件填的设置，插件通过 env.getUserVariables() 读到；没有时传 nil
+func (m *Manager) evaluate(name string, source []byte, vars map[string]string) (*jsrt.Runtime, Info, error) {
 	rt, err := jsrt.New(jsrt.Options{
 		Name:    name,
 		Timeout: m.opts.Timeout,
-		Env:     jsrt.Env{AppVersion: m.opts.AppVersion},
+		// 复制一份再交给运行环境，之后修改 m.values 不会影响正在运行的插件
+		Env: jsrt.Env{AppVersion: m.opts.AppVersion, UserVariables: maps.Clone(vars)},
 		Logger: func(level, msg string) {
 			if m.opts.Logger != nil {
 				m.opts.Logger(name, level, msg)
@@ -147,6 +158,7 @@ func (m *Manager) evaluate(name string, source []byte) (*jsrt.Runtime, Info, err
 		Author              any    `json:"author"`
 		SrcURL              string `json:"srcUrl"`
 		SupportedSearchType []any  `json:"supportedSearchType"`
+		UserVariables       []any  `json:"userVariables"`
 	}
 	_ = json.Unmarshal(metaJSON, &meta)
 	info := Info{
@@ -161,10 +173,46 @@ func (m *Manager) evaluate(name string, source []byte) (*jsrt.Runtime, Info, err
 	for _, t := range meta.SupportedSearchType {
 		info.SupportedSearchType = append(info.SupportedSearchType, fmt.Sprint(t))
 	}
+	info.UserVariables = parseUserVariables(meta.UserVariables)
 	if info.Platform == "" {
 		return rt, info, errors.New("插件没有设置 platform（平台名）")
 	}
 	return rt, info, nil
+}
+
+// parseUserVariables 读出插件声明的用户变量。每一项要有 key，name 和 hint 可以不写：
+// 没有 name 时用 key 当名字。格式不对的项和重复的 key 会被跳过，不影响插件加载
+func parseUserVariables(list []any) []UserVariable {
+	vars := []UserVariable{}
+	seen := map[string]bool{}
+	for _, item := range list {
+		obj, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		key := strings.TrimSpace(textOf(obj["key"]))
+		if key == "" || seen[key] {
+			continue
+		}
+		seen[key] = true
+		v := UserVariable{Key: key, Name: strings.TrimSpace(textOf(obj["name"])), Hint: strings.TrimSpace(textOf(obj["hint"]))}
+		if v.Name == "" {
+			v.Name = key
+		}
+		vars = append(vars, v)
+	}
+	return vars
+}
+
+// textOf 把 JSON 里的字符串或数字变成文字，其它类型（对象、数组等）当作没写
+func textOf(v any) string {
+	switch x := v.(type) {
+	case string:
+		return x
+	case float64, bool:
+		return fmt.Sprint(x)
+	}
+	return ""
 }
 
 func nilToEmpty(v any) any {
@@ -219,8 +267,81 @@ func (m *Manager) Uninstall(id string) error {
 		return err
 	}
 	delete(m.disabled, id)
+	delete(m.values, id) // 卸载时把用户填的设置也删掉
 	m.plugins = slices.DeleteFunc(m.plugins, func(x *loaded) bool { return x == p })
 	return m.writeState()
+}
+
+// ---- 插件设置（用户变量） ----
+
+// UserVariables 返回用户给某个插件填的设置（变量名 -> 值），没填过时返回空的 map
+func (m *Manager) UserVariables(id string) (map[string]string, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.findByID(id) == nil {
+		return nil, fmt.Errorf("找不到插件 %s", id)
+	}
+	values := maps.Clone(m.values[id])
+	if values == nil {
+		values = map[string]string{}
+	}
+	return values, nil
+}
+
+// SetUserVariables 保存用户给插件填的设置，然后重新加载这个插件，马上生效，不用重启。
+// 只保存插件声明过的变量；值的前后空格会去掉，空值表示“没填”。返回重新加载后的插件信息
+func (m *Manager) SetUserVariables(id string, values map[string]string) (Info, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	p := m.findByID(id)
+	if p == nil {
+		return Info{}, fmt.Errorf("找不到插件 %s", id)
+	}
+	if len(p.info.UserVariables) == 0 {
+		return Info{}, fmt.Errorf("插件「%s」没有需要填写的设置", p.info.Platform)
+	}
+	saved := map[string]string{}
+	for _, v := range p.info.UserVariables {
+		value := strings.TrimSpace(values[v.Key])
+		if utf8.RuneCountInString(value) > maxValueLength {
+			return Info{}, fmt.Errorf("「%s」太长了（最多 %d 个字符）", v.Name, maxValueLength)
+		}
+		if value != "" {
+			saved[v.Key] = value
+		}
+	}
+	if len(saved) == 0 {
+		delete(m.values, id)
+	} else {
+		m.values[id] = saved
+	}
+	if err := m.writeState(); err != nil {
+		return Info{}, err
+	}
+	return m.reloadLocked(p).info, nil
+}
+
+// reloadLocked 重新加载一个插件（用新的设置创建新的运行环境），替换掉列表里的旧插件。
+// 调用前要先拿到 m.mu 锁
+func (m *Manager) reloadLocked(old *loaded) *loaded {
+	old.close()
+	p := m.loadFile(old.file)
+	// 和 loadAllLocked 一样：同一个平台名只能有一个插件在用
+	if p.info.Error == "" {
+		for _, other := range m.plugins {
+			if other != old && other.info.Error == "" && other.info.Platform == p.info.Platform {
+				p.info.Error = fmt.Sprintf("平台名「%s」和插件 %s 重复了", p.info.Platform, other.info.ID)
+				p.close()
+				break
+			}
+		}
+	}
+	for i, x := range m.plugins {
+		if x == old {
+			m.plugins[i] = p
+		}
+	}
+	return p
 }
 
 // Close 停止所有插件
@@ -401,6 +522,7 @@ func (m *Manager) Lyric(song music.Song) (string, error) {
 
 func (m *Manager) readState() {
 	m.disabled = map[string]bool{}
+	m.values = map[string]map[string]string{}
 	data, err := os.ReadFile(m.opts.StatePath)
 	if err != nil {
 		return
@@ -410,11 +532,16 @@ func (m *Manager) readState() {
 		for _, id := range s.Disabled {
 			m.disabled[id] = true
 		}
+		for id, vars := range s.UserVariables {
+			if len(vars) > 0 {
+				m.values[id] = vars
+			}
+		}
 	}
 }
 
 func (m *Manager) writeState() error {
-	s := state{Disabled: []string{}}
+	s := state{Disabled: []string{}, UserVariables: m.values}
 	for id := range m.disabled {
 		s.Disabled = append(s.Disabled, id)
 	}

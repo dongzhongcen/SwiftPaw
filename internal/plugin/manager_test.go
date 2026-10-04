@@ -93,7 +93,7 @@ func TestInstallSearchPlayLyric(t *testing.T) {
 		t.Fatalf("插件文件应该按平台名保存：%v", err)
 	}
 
-	res, err := m.Search("测试源", "晴天", 1, "")
+	res, err := m.Search("测试源", "海边小路", 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,14 +101,14 @@ func TestInstallSearchPlayLyric(t *testing.T) {
 		t.Fatalf("搜索结果不对：%+v", res)
 	}
 	first, second := res.Data[0], res.Data[1]
-	if first.ID != "1234567890123" || first.Title != "晴天" || first.Source != "测试源" ||
+	if first.ID != "1234567890123" || first.Title != "海边小路" || first.Source != "测试源" ||
 		first.Key() != "测试源:1234567890123" || first.Duration != 200 || first.Artwork == "" {
 		t.Fatalf("第一首转换不对：%+v", first)
 	}
 	if second.Duration != 185 || second.Artwork != "" || second.Artist != "未知歌手" {
 		t.Fatalf("第二首转换不对：%+v", second)
 	}
-	if res2, _ := m.Search("测试源", "晴天", 2, ""); !res2.IsEnd {
+	if res2, _ := m.Search("测试源", "海边小路", 2, ""); !res2.IsEnd {
 		t.Fatal("第 2 页应该是最后一页")
 	}
 
@@ -123,7 +123,7 @@ func TestInstallSearchPlayLyric(t *testing.T) {
 	}
 
 	lrc, err := m.Lyric(first)
-	if err != nil || lrc != "[00:01.00]晴天" {
+	if err != nil || lrc != "[00:01.00]海边小路" {
 		t.Fatalf("歌词不对：%q %v", lrc, err)
 	}
 }
@@ -232,7 +232,7 @@ func TestItemFromSong(t *testing.T) {
 }
 
 func TestSafeFileName(t *testing.T) {
-	cases := map[string]string{"Archive.org": "Archive-org", "../../evil": "evil", "网易 云": "网易-云", "": "plugin", "a/b\\c": "a-b-c"}
+	cases := map[string]string{"Archive.org": "Archive-org", "../../evil": "evil", "音乐 源": "音乐-源", "": "plugin", "a/b\\c": "a-b-c"}
 	for in, want := range cases {
 		if got := safeFileName(in); got != want {
 			t.Errorf("safeFileName(%q) = %q，期望 %q", in, got, want)
