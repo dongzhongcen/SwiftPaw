@@ -106,6 +106,8 @@ For the latest code that hasn't been released yet, you can download the `SwiftPa
 
 Requires Windows 10 / 11 (64-bit) and WebView2 (included with Windows 11, and already installed on most Windows 10 machines).
 
+The installer and `SwiftPaw.exe` are not code-signed yet, so on first run Windows may show "Windows protected your PC". Click "More info", then "Run anyway". This is expected and does not mean the file is harmful.
+
 To upgrade, just run the new installer: it checks for an existing install, asks whether to replace it, then uninstalls the old version and installs into the same folder. If SwiftPaw is running, it asks you to close it first. Playlists, favorites, plugins and plugin settings are stored in `%AppData%\SwiftPaw`, so upgrading keeps them.
 
 Both the zip and the install folder include `LICENSE`, `THIRD_PARTY_NOTICES.md` (licenses of the third-party open-source software) and `OFL.txt` (the font license).
