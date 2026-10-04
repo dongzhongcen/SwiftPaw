@@ -39,6 +39,11 @@ const overrides = {
     const result = await nativeCall('installPluginFile');
     return result.json ? JSON.parse(result.json) : { id: '' };
   },
+  // 选背景图片用系统的文件选择器，原生代码把图片复制出来交给 Go 内核；取消时和桌面版一样返回空字符串
+  SelectBackgroundImage: async () => {
+    const result = await nativeCall('pickBackgroundImage');
+    return result.json ? JSON.parse(result.json) : '';
+  },
 };
 
 // overrideMethod 让某个方法在 Android 上换一种做法（比如选择文件夹要用系统的选择器）

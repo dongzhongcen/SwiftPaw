@@ -4,7 +4,7 @@
 //  1. Go 模块：用 `go list -deps` 找出编译 Windows 版时真正链接进 exe 的包，
 //     再到 Go 的模块缓存里读每个包最近的 LICENSE 文件（有的模块里某个子目录有自己的许可证，也会单独列出）
 //  2. 插件运行时内置的 JS 库：直接用 scripts/jslib/build.mjs 生成的 internal/jsrt/libs/NOTICES.md
-//  3. 界面用的字体 Nunito：frontend/src/assets/fonts/OFL.txt
+//  3. 界面用的字体：Nunito（frontend/src/assets/fonts/OFL.txt）和风格主题用的中文字体（同一个文件夹里的 OFL-*.txt）
 //  4. Android 版：Go 内核（mobile/gocore，用 gomobile 编译）用到的 Go 模块，
 //     以及 mobile/NOTICES.md 里手动维护的 Android / JS 依赖（Capacitor、AndroidX 等）
 //
@@ -28,6 +28,32 @@ import (
 
 // licenseFile 匹配许可证文件名：LICENSE、LICENSE.txt、LICENSE-GO、LICENSE_V8、COPYING、UNLICENSE 等
 var licenseFile = regexp.MustCompile(`(?i)^(licen[cs]e|copying|unlicense)([._-].*)?$`)
+
+// font 是程序里带的一个字体，License 是 frontend/src/assets/fonts 里的许可证文件
+type font struct {
+	Name, Usage, License, Note string
+	text                       string
+}
+
+var fonts = []font{
+	{
+		Name: "Nunito", Usage: "界面里的英文和数字", License: "OFL.txt",
+		Note: "文件在 `frontend/src/assets/fonts/`，许可证原文也随程序一起发布为 OFL.txt。",
+	},
+	{
+		Name: "霞鹜文楷 LXGW WenKai", Usage: "风格主题“唱片行”", License: "OFL-LXGWWenKai.txt",
+		Note: "https://github.com/lxgw/LxgwWenKai 。程序里带的是只保留 GB2312 常用字的 WOFF2 子集（lxgw-wenkai-gb2312.woff2），" +
+			"只在界面里显示，不作为可安装的字体提供，符合下面许可证开头的补充许可。",
+	},
+	{
+		Name: "得意黑 Smiley Sans", Usage: "风格主题“节拍器”", License: "OFL-SmileySans.txt",
+		Note: "https://github.com/atelier-anchor/smiley-sans 。程序里带的是官方发布的 SmileySans-Oblique.ttf.woff2，没有修改。",
+	},
+	{
+		Name: "站酷庆科黄油体 ZCOOL QingKe HuangYou", Usage: "风格主题“霓虹”", License: "OFL-ZCOOLQingKeHuangYou.txt",
+		Note: "https://github.com/googlefonts/zcool-qingke-huangyou 。程序里带的是只保留 GB2312 常用字的 WOFF2 子集（zcool-qingke-huangyou-gb2312.woff2）。",
+	},
+}
 
 // module 是一个 Go 模块和它的许可证文件
 type module struct {
@@ -55,9 +81,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("读取 JS 库的许可证说明失败（先运行 scripts/jslib 的 npm run build）：%v", err)
 	}
-	ofl, err := os.ReadFile("frontend/src/assets/fonts/OFL.txt")
-	if err != nil {
-		log.Fatal(err)
+	for i, f := range fonts {
+		text, err := os.ReadFile(filepath.Join("frontend/src/assets/fonts", f.License))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fonts[i].text = string(text)
 	}
 
 	var b strings.Builder
@@ -87,10 +116,13 @@ open-source software listed below; the full license texts follow. This file is g
 
 ### 字体
 
-| 字体 | 许可证 |
-|------|--------|
-| Nunito（界面里的英文和数字） | SIL Open Font License 1.1（OFL.txt） |
-
+| 字体 | 用在哪里 | 许可证 |
+|------|----------|--------|
+`)
+	for _, f := range fonts {
+		fmt.Fprintf(&b, "| %s | %s | SIL Open Font License 1.1（%s） |\n", f.Name, f.Usage, f.License)
+	}
+	b.WriteString(`
 ### Android 版
 
 见最后的“Android 版”一节：Go 内核用到的 Go 模块，以及 Capacitor、AndroidX 等 Android 依赖。
@@ -113,9 +145,11 @@ open-source software listed below; the full license texts follow. This file is g
 	}
 	b.WriteString("---\n\n")
 	b.Write(bytes.TrimSpace(jsPart))
-	b.WriteString("\n\n---\n\n## 字体：Nunito（SIL Open Font License 1.1）\n\n")
-	b.WriteString("文件在 `frontend/src/assets/fonts/`，许可证原文也随程序一起发布为 OFL.txt。\n\n")
-	b.WriteString(fence(string(ofl)) + "\n")
+	for _, f := range fonts {
+		fmt.Fprintf(&b, "\n\n---\n\n## 字体：%s（SIL Open Font License 1.1）\n\n%s\n\n", f.Name, f.Note)
+		b.WriteString(fence(f.text))
+	}
+	b.WriteString("\n")
 
 	writeAndroid(&b, modules, androidModules, androidPart)
 

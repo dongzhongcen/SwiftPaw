@@ -1,0 +1,354 @@
+/*
+ * 风格「节拍器」：明亮、干净，像一台放在白桌子上的节拍器。
+ * 墨蓝写字，钴蓝是操作，向日葵黄只用来标“现在这一拍”。
+ * 字体：得意黑（OFL，官方原版 woff2，1.2 MB）只用在标题、歌词这些大字上，正文用系统字体。
+ * 招牌元素：进度条画成一排节拍刻度，歌词页当前一句前面有一个跟着节拍跳的黄色方块。
+ */
+@font-face {
+    font-family: "Smiley Sans";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../assets/fonts/smiley-sans-oblique.woff2") format("woff2");
+}
+
+:root[data-theme="metronome"] {
+    color-scheme: light;
+
+    --paper: #fbfcfd;      /* 纸白：内容区 */
+    --mist: #eff2f6;       /* 雾灰：侧边栏、播放栏 */
+    --ink: #151a2d;        /* 墨蓝：文字 */
+    --cobalt: #2d46f5;     /* 钴蓝：操作和选中 */
+    --sunflower: #ffc22e;  /* 向日葵黄：当前这一拍 */
+    --display: "Smiley Sans", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+
+    --bg: var(--paper);
+    --bg-side: var(--mist);
+    --bg-bar: #ffffff;
+    --bg-hover: #eef1fb;
+    --bg-input: #ffffff;
+    --fg: var(--ink);
+    --fg-muted: #5a6177;
+    --fg-faint: #959bae;
+    --border: #e1e5ec;
+    --border-strong: var(--ink);
+    --accent: var(--cobalt);
+    --accent-fg: #ffffff;
+    --track: #d3d8e2;
+    --danger: #e5383b;
+    --shadow: 0 18px 40px rgba(21, 26, 45, 0.14);
+    --backdrop: rgba(239, 242, 246, 0.75);
+}
+
+:root[data-theme="metronome"] body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+}
+
+:root[data-theme="metronome"] .brand-name,
+:root[data-theme="metronome"] .view-title,
+:root[data-theme="metronome"] .lyrics-title,
+:root[data-theme="metronome"] .pb-title,
+:root[data-theme="metronome"] .dialog-title,
+:root[data-theme="metronome"] .lyric-line {
+    font-family: var(--display);
+}
+
+:root[data-theme="metronome"] .brand-name {
+    font-size: 30px;
+    letter-spacing: 0;
+}
+
+:root[data-theme="metronome"] .brand-logo {
+    color: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .brand-sub {
+    color: var(--cobalt);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-transform: none;
+}
+
+:root[data-theme="metronome"] .sidebar {
+    border-right: none;
+}
+
+:root[data-theme="metronome"] .nav-item {
+    border-radius: 8px;
+    color: var(--fg-muted);
+}
+
+:root[data-theme="metronome"] .nav-item:hover {
+    background: #e4e8f0;
+}
+
+:root[data-theme="metronome"] .nav-item.active {
+    background: #ffffff;
+    color: var(--cobalt);
+    box-shadow: 0 1px 0 #dde2ea, 0 2px 8px rgba(21, 26, 45, 0.06);
+}
+
+:root[data-theme="metronome"] .btn {
+    border-radius: 8px;
+    border-width: 1.5px;
+}
+
+:root[data-theme="metronome"] .btn.primary {
+    border-color: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .btn:hover:not(.primary):not(.danger) {
+    border-color: var(--cobalt);
+    background: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .search-box,
+:root[data-theme="metronome"] .text-input {
+    border-radius: 8px;
+    background: var(--mist);
+    border-color: transparent;
+}
+
+:root[data-theme="metronome"] .search-box:focus-within,
+:root[data-theme="metronome"] .text-input:focus {
+    border-color: var(--cobalt);
+    background: #ffffff;
+}
+
+/* 正在播放的歌：标题变钴蓝，序号换成黄色的节拍块 */
+:root[data-theme="metronome"] .song-row {
+    border-bottom: none;
+    border-radius: 8px;
+}
+
+:root[data-theme="metronome"] .song-row:hover {
+    background: var(--bg-hover);
+}
+
+:root[data-theme="metronome"] .song-row.active {
+    background: #e9edff;
+    color: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .song-row.active .col-artist,
+:root[data-theme="metronome"] .song-row.active .col-album {
+    color: var(--fg-muted);
+}
+
+:root[data-theme="metronome"] .song-row.active .col-index .eq {
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: var(--sunflower);
+    color: var(--ink);
+}
+
+:root[data-theme="metronome"] .song-row.active .row-btn,
+:root[data-theme="metronome"] .song-row.active .chip {
+    color: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .song-row.active .row-btn:hover {
+    background: rgba(45, 70, 245, 0.12);
+    color: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .chip {
+    border: none;
+    border-radius: 4px;
+    background: #e8ebf1;
+    color: var(--fg-muted);
+}
+
+:root[data-theme="metronome"] .song-row.active .chip {
+    background: rgba(45, 70, 245, 0.12);
+}
+
+:root[data-theme="metronome"] .song-head {
+    border-bottom: none;
+    color: var(--fg-faint);
+}
+
+:root[data-theme="metronome"] .play-btn {
+    border: none;
+    background: var(--cobalt);
+    color: #ffffff;
+    transition: transform 140ms ease, background-color 140ms ease;
+}
+
+:root[data-theme="metronome"] .play-btn:hover:not(:disabled) {
+    background: var(--ink);
+    color: #ffffff;
+}
+
+:root[data-theme="metronome"] .play-btn:active:not(:disabled) {
+    transform: scale(0.92);
+}
+
+:root[data-theme="metronome"] .icon-btn.on,
+:root[data-theme="metronome"] #pb-fav.on {
+    color: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .range::-webkit-slider-runnable-track {
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--cobalt) var(--fill), var(--track) var(--fill));
+}
+
+:root[data-theme="metronome"] .range::-webkit-slider-thumb {
+    background: var(--cobalt);
+}
+
+:root[data-theme="metronome"] .segmented,
+:root[data-theme="metronome"] .dialog {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+:root[data-theme="metronome"] .tab-item.active {
+    color: var(--cobalt);
+}
+
+/* ---- 桌面布局 ---- */
+@media (min-width: 860px) and (min-height: 500.02px), (min-width: 860px) and (orientation: portrait) {
+    :root[data-theme="metronome"] .view-header {
+        border-bottom: none;
+        padding: 30px 32px 18px;
+    }
+
+    :root[data-theme="metronome"] .view-title {
+        font-size: 44px;
+        line-height: 1.05;
+    }
+
+    :root[data-theme="metronome"] .view-body {
+        padding: 0 20px 16px;
+    }
+
+    :root[data-theme="metronome"] .player-bar {
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -8px 24px rgba(21, 26, 45, 0.04);
+    }
+
+    :root[data-theme="metronome"] .pb-title {
+        font-size: 18px;
+    }
+
+    :root[data-theme="metronome"] .pb-cover {
+        border: none;
+        border-radius: 8px;
+    }
+
+    /* 招牌：节拍刻度进度条。刻度之间的空隙用播放栏的底色“切”出来 */
+    :root[data-theme="metronome"] .pb-progress .range {
+        height: 22px;
+    }
+
+    :root[data-theme="metronome"] .pb-progress .range::-webkit-slider-runnable-track {
+        height: 12px;
+        border-radius: 0;
+        /* 从上到下：每四拍一根长刻度（其他刻度的上下两头被切掉）、刻度间的空隙、已播放/未播放的颜色 */
+        background:
+            repeating-linear-gradient(to right, transparent 0 3px, var(--bg-bar) 3px 28px) 0 0 / 100% 3px no-repeat,
+            repeating-linear-gradient(to right, transparent 0 3px, var(--bg-bar) 3px 28px) 0 100% / 100% 3px no-repeat,
+            repeating-linear-gradient(to right, transparent 0 3px, var(--bg-bar) 3px 7px),
+            linear-gradient(to right, var(--cobalt) var(--fill), var(--track) var(--fill));
+    }
+
+    /* 刻度间的空隙是用播放栏的底色画的，所以有背景图片时播放栏保持不透明 */
+    :root[data-theme="metronome"][data-bg="on"] .player-bar {
+        background: var(--bg-bar);
+    }
+
+    /* 现在这一拍：黄色的指针 */
+    :root[data-theme="metronome"] .pb-progress .range::-webkit-slider-thumb {
+        width: 5px;
+        height: 22px;
+        margin-top: -5px;
+        border-radius: 3px;
+        background: var(--sunflower);
+        box-shadow: 0 0 0 2px var(--bg-bar);
+        opacity: 1;
+    }
+
+    :root[data-theme="metronome"] .pb-time {
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 14px;
+    }
+
+    :root[data-theme="metronome"] .pb-mode-label {
+        color: var(--fg-muted);
+    }
+
+    /* 歌词页：封面右下角压一块黄色，歌词左对齐，当前一句放大 */
+    :root[data-theme="metronome"] .lyrics-cover {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 16px 16px 0 var(--sunflower);
+    }
+
+    :root[data-theme="metronome"] .lyrics-title {
+        margin-top: 34px;
+        font-size: 34px;
+    }
+
+    :root[data-theme="metronome"] .lyrics-scroll {
+        mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+    }
+
+    :root[data-theme="metronome"] .lyric-line {
+        position: relative;
+        padding: 10px 0 10px 30px;
+        color: #b4b9c7;
+        font-size: 22px;
+        line-height: 1.35;
+        transform-origin: left center;
+        transition: color 220ms ease, font-size 220ms ease;
+    }
+
+    :root[data-theme="metronome"] .lyric-line:hover {
+        color: var(--fg-muted);
+    }
+
+    :root[data-theme="metronome"] .lyric-line.active {
+        color: var(--ink);
+        font-size: 34px;
+        transform: none;
+    }
+
+    :root[data-theme="metronome"] .lyric-line.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        margin-top: -7px;
+        border-radius: 3px;
+        background: var(--sunflower);
+        animation: beat 0.5s ease-out infinite paused;
+    }
+
+    :root[data-theme="metronome"][data-playing="true"] .lyric-line.active::before {
+        animation-play-state: running;
+    }
+}
+
+@keyframes beat {
+    0% {
+        transform: scale(1.25);
+    }
+    60%,
+    100% {
+        transform: scale(0.85);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root[data-theme="metronome"] .lyric-line.active::before {
+        animation: none;
+    }
+}

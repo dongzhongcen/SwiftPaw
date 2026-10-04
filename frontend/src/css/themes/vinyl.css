@@ -1,0 +1,286 @@
+/*
+ * 风格「唱片行」：深胡桃木色的夜间唱片行。
+ * 琥珀色是唱片标签和灯光，铜绿色是旧音箱上的铭牌。
+ * 字体：霞鹜文楷（OFL，GB2312 子集 1.6 MB），整套界面只用这一种字体。
+ * 招牌元素：歌词页的封面变成一张正在转的黑胶唱片（33⅓ 转/分），暂停时唱臂抬起、唱片停下。
+ */
+@font-face {
+    font-family: "LXGW WenKai";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../assets/fonts/lxgw-wenkai-gb2312.woff2") format("woff2");
+}
+
+:root[data-theme="vinyl"] {
+    color-scheme: dark;
+
+    --walnut: #241a14;   /* 胡桃木：窗口背景 */
+    --bone: #f1e6d3;     /* 骨白：文字 */
+    --amber: #e9a23b;    /* 琥珀：强调色 */
+    --patina: #5fa394;   /* 铜绿：格式标签等次要强调 */
+    --groove: #120d0a;   /* 唱片纹路 */
+
+    --bg: var(--walnut);
+    --bg-side: #1c140f;
+    --bg-bar: #2b2018;
+    --bg-hover: #31251c;
+    --bg-input: #1c140f;
+    --fg: var(--bone);
+    --fg-muted: #b8a58d;
+    --fg-faint: #7f6c58;
+    --border: #3a2c22;
+    --border-strong: #6b5642;
+    --accent: var(--amber);
+    --accent-fg: #241a14;
+    --track: #4a392b;
+    --danger: #ef6f5a;
+    --shadow: 0 18px 50px rgba(8, 4, 2, 0.6);
+    --backdrop: rgba(18, 12, 9, 0.72);
+}
+
+:root[data-theme="vinyl"] body {
+    font-family: "LXGW WenKai", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    font-size: 15px;
+}
+
+/* 整个窗口蒙一层很淡的颗粒，像旧纸袋和木头的质感 */
+:root[data-theme="vinyl"] body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .9 0 0 0 0 .75 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="vinyl"] .brand-name {
+    font-size: 24px;
+    letter-spacing: 0.04em;
+}
+
+:root[data-theme="vinyl"] .brand-logo {
+    color: var(--amber);
+}
+
+:root[data-theme="vinyl"] .brand-sub {
+    color: var(--amber);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    opacity: 0.8;
+}
+
+/* 选中的导航和正在播放的歌：左边一条琥珀色，底色微微发暖，而不是整块反色 */
+:root[data-theme="vinyl"] .nav-item {
+    border-radius: 6px;
+}
+
+:root[data-theme="vinyl"] .nav-item.active,
+:root[data-theme="vinyl"] .song-row.active {
+    background: linear-gradient(90deg, rgba(233, 162, 59, 0.2), rgba(233, 162, 59, 0.05) 65%, transparent);
+    color: var(--amber);
+    box-shadow: inset 3px 0 0 var(--amber);
+}
+
+:root[data-theme="vinyl"] .song-row.active .col-index,
+:root[data-theme="vinyl"] .song-row.active .row-btn {
+    color: var(--amber);
+}
+
+:root[data-theme="vinyl"] .song-row.active .col-artist,
+:root[data-theme="vinyl"] .song-row.active .col-album {
+    color: var(--fg-muted);
+}
+
+:root[data-theme="vinyl"] .song-row.active .row-btn:hover {
+    background: rgba(233, 162, 59, 0.16);
+    color: var(--amber);
+}
+
+:root[data-theme="vinyl"] .song-row {
+    border-bottom-color: rgba(58, 44, 34, 0.7);
+}
+
+:root[data-theme="vinyl"] .chip,
+:root[data-theme="vinyl"] .song-row.active .chip {
+    border-color: rgba(95, 163, 148, 0.55);
+    border-radius: 3px;
+    color: var(--patina);
+}
+
+:root[data-theme="vinyl"] .btn {
+    border-radius: 999px;
+}
+
+:root[data-theme="vinyl"] .btn.primary {
+    border-color: var(--amber);
+}
+
+:root[data-theme="vinyl"] .search-box,
+:root[data-theme="vinyl"] .text-input {
+    border-radius: 999px;
+}
+
+:root[data-theme="vinyl"] .view-title {
+    font-size: 32px;
+    letter-spacing: 0.02em;
+}
+
+/* 播放键是一颗琥珀色的旋钮 */
+:root[data-theme="vinyl"] .play-btn {
+    border: none;
+    background: var(--amber);
+    color: var(--accent-fg);
+    box-shadow: 0 0 0 4px rgba(233, 162, 59, 0.16);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+:root[data-theme="vinyl"] .play-btn:hover:not(:disabled) {
+    background: #f4b75a;
+    color: var(--accent-fg);
+    box-shadow: 0 0 0 7px rgba(233, 162, 59, 0.2);
+}
+
+:root[data-theme="vinyl"] .play-btn:active:not(:disabled) {
+    transform: scale(0.94);
+}
+
+:root[data-theme="vinyl"] .range::-webkit-slider-runnable-track {
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--amber) var(--fill), var(--track) var(--fill));
+}
+
+:root[data-theme="vinyl"] .range::-webkit-slider-thumb {
+    background: var(--bone);
+    box-shadow: 0 0 0 3px rgba(233, 162, 59, 0.35);
+}
+
+:root[data-theme="vinyl"] .player-bar {
+    background: linear-gradient(to bottom, #31251c, #261c15);
+}
+
+:root[data-theme="vinyl"] .segmented,
+:root[data-theme="vinyl"] .dialog {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ---- 招牌：黑胶唱片 ----
+ * 唱片纹路是对称的，转起来看不出来，所以只让中间的标签（封面）转，
+ * 唱片表面的反光固定不动，看起来就像真的在转。 */
+:root[data-theme="vinyl"] .lyrics-cover,
+:root[data-theme="vinyl"] .pb-cover {
+    position: relative;
+    border: none;
+    border-radius: 50%;
+    overflow: visible;
+    background:
+        radial-gradient(circle, transparent 0 33%, rgba(255, 255, 255, 0.05) 33.5% 34.5%, transparent 35%),
+        repeating-radial-gradient(circle, var(--groove) 0 1px, #1d1611 1.5px 2.5px, var(--groove) 3px),
+        var(--groove);
+    box-shadow: 0 0 0 1px #000, 0 14px 40px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme="vinyl"] .lyrics-cover img,
+:root[data-theme="vinyl"] .pb-cover img {
+    position: absolute;
+    inset: 32%;
+    width: 36%;
+    height: 36%;
+    border-radius: 50%;
+    animation: vinyl-spin 1.8s linear infinite paused;
+}
+
+:root[data-theme="vinyl"][data-playing="true"] .lyrics-cover img,
+:root[data-theme="vinyl"][data-playing="true"] .pb-cover img {
+    animation-play-state: running;
+}
+
+/* 反光 + 中间的轴孔，不转 */
+:root[data-theme="vinyl"] .lyrics-cover::before,
+:root[data-theme="vinyl"] .pb-cover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background:
+        radial-gradient(circle, #0c0806 0 1.6%, transparent 1.9%),
+        conic-gradient(from 20deg, transparent 0 8%, rgba(255, 236, 205, 0.12) 13%, transparent 19% 50%, rgba(255, 236, 205, 0.09) 63%, transparent 69%);
+}
+
+:root[data-theme="vinyl"] .pb-cover-fallback {
+    color: var(--amber);
+}
+
+/* 有封面时不显示后面的音符图标（封面缩小成标签后会露出来） */
+:root[data-theme="vinyl"] .pb-cover img:not([hidden]) + .pb-cover-fallback {
+    display: none;
+}
+
+@keyframes vinyl-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 桌面布局才有唱臂和歌词页的大唱片 */
+@media (min-width: 860px) and (min-height: 500.02px), (min-width: 860px) and (orientation: portrait) {
+    :root[data-theme="vinyl"] .lyrics-view {
+        background: radial-gradient(ellipse 60% 70% at 22% 45%, rgba(233, 162, 59, 0.1), transparent 70%);
+    }
+
+    :root[data-theme="vinyl"] .lyrics-cover {
+        width: min(100%, 330px);
+    }
+
+    /* 唱臂：轴座 + 臂杆 + 琥珀色唱头，暂停时抬到唱片外面 */
+    :root[data-theme="vinyl"] .lyrics-cover::after {
+        content: "";
+        position: absolute;
+        top: -26px;
+        right: -40px;
+        z-index: 2;
+        width: 56px;
+        height: 66%;
+        pointer-events: none;
+        background:
+            radial-gradient(circle at 28px 28px, #d9c6a3 0 9px, #6b5642 10px 15px, #2b2018 16px 22px, transparent 23px) no-repeat,
+            linear-gradient(var(--amber), #b97a22) no-repeat 50% 100% / 18px 30px,
+            linear-gradient(to right, transparent 25px, #cdb995 25px 28px, #8f7b5d 28px 31px, transparent 31px) no-repeat 0 28px / 100% calc(100% - 50px);
+        filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.5));
+        transform-origin: 28px 28px;
+        transform: rotate(4deg);
+        transition: transform 700ms cubic-bezier(0.3, 0.7, 0.2, 1);
+    }
+
+    :root[data-theme="vinyl"][data-playing="true"] .lyrics-cover::after {
+        transform: rotate(24deg);
+    }
+
+    :root[data-theme="vinyl"] .lyrics-title {
+        margin-top: 30px;
+        font-size: 28px;
+    }
+
+    :root[data-theme="vinyl"] .lyric-line {
+        color: #8c7862;
+        font-size: 18px;
+        transition: color 260ms ease, transform 260ms ease;
+    }
+
+    :root[data-theme="vinyl"] .lyric-line.active {
+        color: var(--amber);
+        transform: scale(1.18);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root[data-theme="vinyl"] .lyrics-cover img,
+    :root[data-theme="vinyl"] .pb-cover img {
+        animation: none;
+    }
+}

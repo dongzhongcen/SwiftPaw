@@ -15,8 +15,8 @@ import (
 	"musicplayer/internal/core"
 )
 
-// hidden 是不能从前端调用的方法：生命周期由 Java 代码管理，Stream 只给桌面版用
-var hidden = map[string]bool{"Close": true, "Stream": true}
+// hidden 是不能从前端调用的方法：生命周期由 Java 代码管理，Stream 和 BackgroundHandler 只给桌面版用
+var hidden = map[string]bool{"Close": true, "Stream": true, "BackgroundHandler": true}
 
 // Core 是给 Java 用的内核对象，整个程序只创建一个
 type Core struct {
@@ -117,6 +117,22 @@ func (m *Core) Cover(path string) (*Picture, error) {
 		picture.MIME = "image/jpeg"
 	}
 	return &Picture{MIME: picture.MIME, Data: picture.Data}, nil
+}
+
+// BackgroundImage 是一张保存在数据文件夹里的背景图片
+type BackgroundImage struct {
+	Path string // 完整路径，Java 直接打开这个文件
+	MIME string
+}
+
+// Background 找到前端 /background?name=... 要的背景图片。name 必须是 SetBackgroundImage 返回的文件名，
+// 不能拿它读别的文件；找不到时返回错误（Java 里是异常）
+func (m *Core) Background(name string) (*BackgroundImage, error) {
+	path, err := m.core.BackgroundImagePath(name)
+	if err != nil {
+		return nil, err
+	}
+	return &BackgroundImage{Path: path, MIME: core.BackgroundContentType(name)}, nil
 }
 
 // Close 关闭数据库和插件运行环境

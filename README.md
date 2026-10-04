@@ -7,7 +7,7 @@
 [![构建 Android 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml)
 [![最新版本](https://img.shields.io/github/v/release/dongzhongcen/SwiftPaw?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/dongzhongcen/SwiftPaw/releases)
 ![Go](https://img.shields.io/github/go-mod/go-version/dongzhongcen/SwiftPaw)
-![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B-0078D4)
+![平台](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B%20%28Beta%29-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
 [![许可证](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-blue)](LICENSE)
 
@@ -15,7 +15,7 @@
 
 ## 简介
 
-极拍（SwiftPaw）是我用 Go 和 [Wails](https://wails.io) 写的一个 Windows 桌面音乐播放器，现在也有 Android 版。
+极拍（SwiftPaw）是我用 Go 和 [Wails](https://wails.io) 写的一个 Windows 桌面音乐播放器，现在也有 Android 版（Beta）。
 
 我想做的播放器很简单：打开就能听本地的歌，界面干净，不需要登录。所以它的界面是黑白极简风格，所有数据（歌单、收藏、播放记录）都只存在自己电脑上。
 
@@ -49,9 +49,15 @@ Android 版用 [Capacitor](https://capacitorjs.com) 打包，界面和桌面版�
 - 插件在内置的 JS 引擎（[goja](https://github.com/dop251/goja)）里运行，不需要装 Node.js；常用的 `axios`、`crypto-js`、`cheerio`、`dayjs` 等模块已经内置
 
 **外观**
-- 深色 / 浅色 / 跟随系统三种主题
+- 深色 / 浅色 / 跟随系统三种配色
+- 三种风格，在设置页里点一下马上换：**唱片行**（暖色木纹，歌词页的封面是一张会转的黑胶唱片）、**节拍器**（明亮的浅色，进度条是一排节拍刻度）、**霓虹**（夜色和磨砂玻璃，唱到的歌词像灯管一样亮起来）。每种风格带一款开源中文字体（SIL OFL 许可证），只有选了这个风格才会加载
+- 自定义背景图片：支持 JPG / PNG / WebP / GIF（最大 20 MB），可以调模糊和遮罩，搭配任何配色和风格都能用；图片会复制一份到软件自己的数据文件夹，原图删了也不影响
+- “减少模糊效果”开关：关掉磨砂玻璃这类效果，老电脑和手机上更流畅（Android 上默认打开）
 
-**Android 版**
+**Android 版（Beta）**
+
+> Android 版目前是 Beta，还在开发中，以后会换一种编程语言重写；桌面版不受影响。
+
 - 要求 Android 8.0 或更新，手机和平板都能用：竖屏是底部标签栏，平板和横屏是左边的标签栏
 - “扫描本机音乐”读出手机里所有的音乐，不用选文件夹
 - 后台播放：切到别的应用、锁屏后继续放；通知栏和锁屏上可以暂停、切歌、拖进度，耳机和蓝牙按键也能用
@@ -67,7 +73,7 @@ Android 版用 [Capacitor](https://capacitorjs.com) 打包，界面和桌面版�
 | :---: | :---: | :---: |
 | ![浅色主题](docs/screenshots/light.png) | ![歌词页](docs/screenshots/lyrics.png) | ![用示例插件在线搜索](docs/screenshots/online.png) |
 
-Android 版：
+Android 版（Beta）：
 
 | 本地音乐 | 播放页 | 我的 | 浅色主题 |
 | :---: | :---: | :---: | :---: |
@@ -98,7 +104,7 @@ SwiftPaw/
 │   └── winstate/         # 窗口大小的保存和读取
 ├── frontend/             # 前端（原生 JS + Vite，没有用框架）
 │   ├── src/js/           # 每个功能一个小模块：播放器、列表、歌词、插件页……
-│   ├── src/css/          # 样式，颜色都在 theme.css 里
+│   ├── src/css/          # 样式，颜色都在 theme.css 里，风格主题在 themes/
 │   └── wailsjs/          # Go 方法的 JS 绑定（自动生成）
 ├── examples/plugins/     # 示例插件
 ├── scripts/
@@ -123,7 +129,7 @@ SwiftPaw/
 
 需要 Windows 10 / 11（64 位）和 WebView2（Windows 11 自带，Windows 10 大多也装好了）。
 
-Android 版下载 `SwiftPaw-x.y.z-android.apk`，需要 Android 8.0 或更新。没有上架应用商店，直接在手机上打开 APK 安装：
+Android 版（Beta）下载 `SwiftPaw-x.y.z-android.apk`，需要 Android 8.0 或更新。没有上架应用商店，直接在手机上打开 APK 安装：
 第一次安装时系统会问是否允许“安装未知应用”，在弹出的设置里允许当前用来打开 APK 的应用（比如浏览器或文件管理器）就行。
 以后升级直接装新版本的 APK，歌单、收藏和插件都会保留。还没有发布的最新代码，可以在 [Actions → 构建 Android 版](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml) 里下载 `SwiftPaw-android` 构建产物。
 

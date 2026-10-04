@@ -7,7 +7,7 @@
 [![Build Android](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml/badge.svg)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml)
 [![Latest release](https://img.shields.io/github/v/release/dongzhongcen/SwiftPaw?label=latest%20release)](https://github.com/dongzhongcen/SwiftPaw/releases)
 ![Go](https://img.shields.io/github/go-mod/go-version/dongzhongcen/SwiftPaw)
-![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B-0078D4)
+![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B%20%28Beta%29-0078D4)
 ![Wails](https://img.shields.io/badge/Wails-v2.16-red)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -15,7 +15,7 @@
 
 ## Introduction
 
-SwiftPaw (极拍, "Jípāi") is a Windows desktop music player I wrote in Go with [Wails](https://wails.io), and it now has an Android version too.
+SwiftPaw (极拍, "Jípāi") is a Windows desktop music player I wrote in Go with [Wails](https://wails.io), and it now has an Android version too (Beta).
 
 What I wanted was a simple player: open it and listen to the music on my own computer, with a clean interface and no sign-in. So the interface is minimal black and white, and all data (playlists, favorites, play history) stays on your own computer.
 
@@ -51,9 +51,15 @@ I've tried to write the code comments so that beginners can follow them, and to 
 - Plugins run in a built-in JS engine ([goja](https://github.com/dop251/goja)), so you don't need Node.js; common modules such as `axios`, `crypto-js`, `cheerio` and `dayjs` are built in
 
 **Appearance**
-- Three themes: dark, light, and follow the system
+- Three color modes: dark, light, and follow the system
+- Three styles you can switch to instantly in Settings: **唱片行 / Record Shop** (warm wood tones; the cover on the lyrics page becomes a spinning vinyl record), **节拍器 / Metronome** (bright and light; the progress bar is a row of beat ticks) and **霓虹 / Neon** (night colors and frosted glass; the current lyric line lights up like a neon tube). Each style comes with an open-source Chinese font (SIL OFL), loaded only when that style is in use
+- Custom background image: JPG / PNG / WebP / GIF (up to 20 MB) with adjustable blur and dimming, on top of any color mode or style. The image is copied into the app's own data folder, so deleting the original doesn't matter
+- A "Reduce blur effects" switch that turns off frosted-glass effects for smoother performance on older PCs and phones (on by default on Android)
 
-**Android version**
+**Android version (Beta)**
+
+> The Android version is a Beta and still in development; it will later be rewritten in a different programming language. The desktop version is unaffected.
+
 - Requires Android 8.0 or newer and works on phones and tablets: a bottom tab bar in portrait, and a tab bar on the left on tablets and in landscape
 - "Scan device music" (扫描本机音乐) finds all the music on your phone, with no folder to pick
 - Background playback: keeps playing when you switch apps or lock the screen; pause, skip and seek from the notification and the lock screen, and headset and Bluetooth buttons work too
@@ -69,7 +75,7 @@ The local songs in the screenshots are test audio I generated myself, and I wrot
 | :---: | :---: | :---: |
 | ![Light theme](docs/screenshots/light.png) | ![Lyrics page](docs/screenshots/lyrics.png) | ![Online search with the example plugin](docs/screenshots/online.png) |
 
-Android version:
+Android version (Beta):
 
 | Local music | Player | Mine | Light theme |
 | :---: | :---: | :---: | :---: |
@@ -100,7 +106,7 @@ SwiftPaw/
 │   └── winstate/         # Saving and loading the window size
 ├── frontend/             # Frontend (plain JS + Vite, no framework)
 │   ├── src/js/           # One small module per feature: player, lists, lyrics, plugins page…
-│   ├── src/css/          # Styles; all colors are in theme.css
+│   ├── src/css/          # Styles; all colors are in theme.css, styles in themes/
 │   └── wailsjs/          # JS bindings for the Go methods (generated)
 ├── examples/plugins/     # Example plugin
 ├── scripts/
@@ -125,7 +131,7 @@ For the latest code that hasn't been released yet, you can download the `SwiftPa
 
 Requires Windows 10 / 11 (64-bit) and WebView2 (included with Windows 11, and already installed on most Windows 10 machines).
 
-For Android, download `SwiftPaw-x.y.z-android.apk` (requires Android 8.0 or newer). It isn't in an app store, so open the APK on your phone to install it.
+For Android (Beta), download `SwiftPaw-x.y.z-android.apk` (requires Android 8.0 or newer). It isn't in an app store, so open the APK on your phone to install it.
 The first time, Android asks whether to allow "Install unknown apps"; allow it for the app you used to open the APK (such as your browser or file manager).
 To upgrade, just install the new APK; playlists, favorites and plugins are kept. For the latest unreleased code, download the `SwiftPaw-android` artifact from [Actions → 构建 Android 版 (Build Android)](https://github.com/dongzhongcen/SwiftPaw/actions/workflows/build-android.yml).
 

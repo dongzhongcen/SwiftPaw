@@ -6,6 +6,9 @@ export namespace core {
 	    playMode: string;
 	    volume: number;
 	    theme: string;
+	    style: string;
+	    reduceBlur: string;
+	    background: BackgroundConfig;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -18,6 +21,43 @@ export namespace core {
 	        this.playMode = source["playMode"];
 	        this.volume = source["volume"];
 	        this.theme = source["theme"];
+	        this.style = source["style"];
+	        this.reduceBlur = source["reduceBlur"];
+	        this.background = this.convertValues(source["background"], BackgroundConfig);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = this.convertValues(a[key], classs);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class BackgroundConfig {
+	    image: string;
+	    blur: number;
+	    dim: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackgroundConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.image = source["image"];
+	        this.blur = source["blur"];
+	        this.dim = source["dim"];
 	    }
 	}
 

@@ -14,6 +14,12 @@ import './css/settings.css';
 import './css/online.css';
 import './css/plugins.css';
 import './css/mobile.css';
+// 风格主题要在 mobile.css 后面（风格主题里的规则会覆盖手机布局的个别样式），
+// 自定义背景要在最后，才能把各个主题的底色换成半透明的
+import './css/themes/vinyl.css';
+import './css/themes/metronome.css';
+import './css/themes/neon.css';
+import './css/background.css';
 
 import { QueueSetMode } from '../wailsjs/go/main/App';
 import { layoutHtml } from './js/layout.js';
@@ -27,7 +33,8 @@ import { initPlugins } from './js/plugins.js';
 import { initMediaSession } from './js/mediasession.js';
 import { initAbout } from './js/about.js';
 import { initShell } from './js/shell.js';
-import { applyTheme } from './js/theme.js';
+import { applyTheme, applyStyle } from './js/theme.js';
+import { applyReduceBlur, applyBackground } from './js/effects.js';
 import { refreshFavorites, refreshPlaylists, toggleFavorite, isFavorite } from './js/actions.js';
 import { loadFolder } from './js/library.js';
 import { loadConfig, finishRestoring } from './js/config.js';
@@ -37,6 +44,7 @@ import { icons } from './js/icons.js';
 import { isAndroid } from './js/platform.js';
 
 document.querySelector('#app').innerHTML = layoutHtml;
+applyReduceBlur(''); // 读到配置之前先用默认值（Android 上减少模糊效果）
 
 initPlayer();
 initSidebar();
@@ -57,6 +65,9 @@ async function startApp() {
   try {
     const config = await loadConfig();
     applyTheme(config.theme);
+    applyStyle(config.style);
+    applyReduceBlur(config.reduceBlur);
+    applyBackground(config.background);
     setVolume(config.volume);
     await applyQueue(await QueueSetMode(config.playMode || 'sequence'), false);
     await Promise.all([refreshPlaylists(), refreshFavorites()]).catch(showError);
