@@ -1,6 +1,12 @@
-// 整个窗口的 HTML 结构：左边侧边栏、中间内容区、底部播放栏
+// 整个窗口的 HTML 结构：左边侧边栏、中间内容区、底部播放栏。
+// 手机和平板上（窗口比较窄时）侧边栏换成底部（或左边）的标签栏，播放栏变成迷你播放条，
+// 点开后是全屏的播放页，见 css/mobile.css 和 js/shell.js。
 
 import { icons } from './icons.js';
+
+// 手机上的标签栏按钮
+const tab = (name, icon, label) => `
+  <button class="tab-item" type="button" data-tab="${name}">${icon}<span class="tab-label">${label}</span></button>`;
 
 export const layoutHtml = `
   <div class="app">
@@ -50,6 +56,7 @@ export const layoutHtml = `
 
     <main class="content">
       <header class="view-header">
+        <button class="icon-btn view-back" type="button" id="view-back" title="返回" aria-label="返回" hidden>${icons.back}</button>
         <div class="view-heading">
           <h1 id="view-title" class="view-title"></h1>
           <p id="view-subtitle" class="view-subtitle"></p>
@@ -65,7 +72,21 @@ export const layoutHtml = `
       <div class="view-body" id="view-body"></div>
     </main>
 
-    <footer class="player-bar">
+    <nav class="tabbar" id="tabbar" aria-label="主菜单">
+      ${tab('library', icons.music, '音乐')}
+      ${tab('mine', icons.heart, '我的')}
+      ${tab('online', icons.globe, '在线')}
+      ${tab('plugins', icons.plugin, '插件')}
+      ${tab('settings', icons.settings, '设置')}
+    </nav>
+
+    <footer class="player-bar" id="player-bar">
+      <div class="pb-sheet-head">
+        <button class="icon-btn" type="button" id="pb-collapse" title="收起" aria-label="收起">${icons.chevronDown}</button>
+        <span class="pb-sheet-title">正在播放</span>
+        <button class="icon-btn" type="button" id="pb-lyrics" title="歌词" aria-label="歌词">${icons.lyrics}</button>
+        <button class="icon-btn" type="button" id="pb-queue" title="播放队列" aria-label="播放队列">${icons.queue}</button>
+      </div>
       <div class="pb-track">
         <button class="pb-cover" type="button" id="cover-btn" title="歌词">
           <img id="cover" alt="" hidden />

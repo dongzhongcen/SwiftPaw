@@ -1,5 +1,8 @@
 // 前端入口：搭好页面结构，初始化各个模块，然后恢复上次的播放状态。
 
+// 要最先导入：Android 上它负责准备好调用 Go 内核的 window.go
+import './js/platform.js';
+
 import './css/theme.css';
 import './css/base.css';
 import './css/layout.css';
@@ -10,6 +13,7 @@ import './css/lyrics.css';
 import './css/settings.css';
 import './css/online.css';
 import './css/plugins.css';
+import './css/mobile.css';
 
 import { QueueSetMode } from '../wailsjs/go/main/App';
 import { layoutHtml } from './js/layout.js';
@@ -22,6 +26,7 @@ import { initOnline } from './js/online.js';
 import { initPlugins } from './js/plugins.js';
 import { initMediaSession } from './js/mediasession.js';
 import { initAbout } from './js/about.js';
+import { initShell } from './js/shell.js';
 import { applyTheme } from './js/theme.js';
 import { refreshFavorites, refreshPlaylists, toggleFavorite, isFavorite } from './js/actions.js';
 import { loadFolder } from './js/library.js';
@@ -41,6 +46,7 @@ initOnline();
 initPlugins();
 initMediaSession();
 initAbout();
+initShell();
 initCoverButton();
 initFavoriteButton();
 initKeyboard();
