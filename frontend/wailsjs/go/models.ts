@@ -1,3 +1,56 @@
+export namespace lyrics {
+	
+	export class Line {
+	    time: number;
+	    text: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Line(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.time = source["time"];
+	        this.text = source["text"];
+	    }
+	}
+	export class Lyrics {
+	    lines: Line[];
+	    plain: boolean;
+	    source: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Lyrics(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.lines = this.convertValues(source["lines"], Line);
+	        this.plain = source["plain"];
+	        this.source = source["source"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = this.convertValues(a[key], classs);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace main {
 	
 	export class AppConfig {
@@ -5,6 +58,7 @@ export namespace main {
 	    lastSong: string;
 	    playMode: string;
 	    volume: number;
+	    theme: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -16,6 +70,7 @@ export namespace main {
 	        this.lastSong = source["lastSong"];
 	        this.playMode = source["playMode"];
 	        this.volume = source["volume"];
+	        this.theme = source["theme"];
 	    }
 	}
 

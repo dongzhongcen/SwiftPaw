@@ -24,6 +24,9 @@ export const layoutHtml = `
         <button class="nav-item" type="button" data-view="queue">
           ${icons.queue}<span class="nav-label">播放队列</span><span class="nav-count" id="count-queue">0</span>
         </button>
+        <button class="nav-item" type="button" data-view="lyrics">
+          ${icons.lyrics}<span class="nav-label">歌词</span>
+        </button>
       </nav>
 
       <div class="nav-section">
@@ -31,6 +34,12 @@ export const layoutHtml = `
         <button class="icon-btn small" type="button" id="new-playlist" title="新建歌单" aria-label="新建歌单">${icons.plus}</button>
       </div>
       <nav class="nav playlist-nav" id="playlist-nav"></nav>
+
+      <nav class="nav sidebar-footer">
+        <button class="nav-item" type="button" data-view="settings">
+          ${icons.settings}<span class="nav-label">设置</span>
+        </button>
+      </nav>
     </aside>
 
     <main class="content">
@@ -39,14 +48,20 @@ export const layoutHtml = `
           <h1 id="view-title" class="view-title"></h1>
           <p id="view-subtitle" class="view-subtitle"></p>
         </div>
-        <div class="view-actions" id="view-actions"></div>
+        <div class="view-tools">
+          <label class="search-box" id="search-box">
+            ${icons.search}
+            <input id="search" class="search-input" type="search" placeholder="搜索当前列表" title="按标题、歌手、专辑、文件名搜索，不区分大小写" autocomplete="off" />
+          </label>
+          <div class="view-actions" id="view-actions"></div>
+        </div>
       </header>
       <div class="view-body" id="view-body"></div>
     </main>
 
     <footer class="player-bar">
       <div class="pb-track">
-        <button class="pb-cover" type="button" id="cover-btn" title="封面">
+        <button class="pb-cover" type="button" id="cover-btn" title="歌词">
           <img id="cover" alt="" hidden />
           <span class="pb-cover-fallback">${icons.music}</span>
         </button>

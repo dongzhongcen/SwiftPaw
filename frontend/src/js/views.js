@@ -25,6 +25,7 @@ const toItems = (songs) => songs.map((song, index) => ({ song, index }));
 const playAllAction = (songs) => ({ label: '播放全部', icon: icons.play, primary: true, run: () => playSongs(songs, 0) });
 
 // 每个页面的定义。param 是 view 名里冒号后面的部分，比如 playlist:3 里的 3。
+// load 函数返回页面描述；返回值里有 render(body) 时表示这是自定义页面（歌词、设置等），不画歌曲列表。
 const views = {
   async library() {
     const songs = state.library;
@@ -137,12 +138,22 @@ const views = {
   },
 };
 
+// registerView 让其他模块注册自己的页面，比如 registerView('lyrics', loadLyricsView)
+export function registerView(kind, load) {
+  views[kind] = load;
+}
+
 let renderToken = 0;
 let songsByKey = new Map(); // 当前页面里的歌，更新红心时用
+let lastData = null; // 当前页面的描述，搜索时直接用它重新过滤，不用再去 Go 那边取
 
 // showView 切换页面
 export async function showView(name) {
   const changed = state.view !== name;
+  if (changed) {
+    state.previousView = state.view;
+    $('search').value = ''; // 换页面时清空搜索
+  }
   state.view = name;
   emit('view-changed', name);
   await renderView(!changed);
@@ -164,18 +175,51 @@ export async function renderView(keepScroll = true) {
     return;
   }
 
+  lastData = data;
   $('view-title').textContent = data.title;
   $('view-subtitle').textContent = data.subtitle || '';
-  renderActions(data.actions.filter(Boolean));
+  renderActions((data.actions || []).filter(Boolean));
 
   const body = $('view-body');
   const scrollTop = body.scrollTop;
-  songsByKey = new Map();
-  data.groups.forEach((g) => g.items.forEach((item) => songsByKey.set(songKey(item.song), item.song)));
-  renderSongList(body, data);
-  body.querySelector('[data-empty-action]')?.addEventListener('click', guard(data.emptyAction));
+  const searchable = !data.render && data.searchable !== false;
+  $('search-box').hidden = !searchable;
+  body.classList.toggle('custom', !!data.render);
+
+  if (data.render) {
+    await data.render(body);
+    return;
+  }
+  renderList();
   body.scrollTop = keepScroll ? scrollTop : 0;
   if (!keepScroll) markActive(body, true);
+}
+
+// renderList 按搜索框里的文字过滤后画出歌曲列表
+function renderList() {
+  const data = lastData;
+  const body = $('view-body');
+  const query = $('search').value.trim().toLowerCase();
+  const groups = query ? filterGroups(data.groups, query) : data.groups;
+
+  songsByKey = new Map();
+  groups.forEach((g) => g.items.forEach((item) => songsByKey.set(songKey(item.song), item.song)));
+  const empty = query ? `<p>没有找到和“${escapeHtml(query)}”有关的歌</p>` : data.empty;
+  renderSongList(body, { ...data, groups, empty });
+  body.querySelector('[data-empty-action]')?.addEventListener('click', guard(data.emptyAction));
+}
+
+// filterGroups 按标题、歌手、专辑、文件名过滤（不区分大小写），空的分组去掉
+export function filterGroups(groups, query) {
+  return groups
+    .map((g) => ({ ...g, items: g.items.filter((item) => matchSong(item.song, query)) }))
+    .filter((g) => g.items.length > 0);
+}
+
+function matchSong(song, query) {
+  const fileName = (song.path || '').split(/[\\/]/).pop();
+  return [song.title, song.artist, song.album, song.name, fileName]
+    .some((field) => (field || '').toLowerCase().includes(query));
 }
 
 function renderActions(actions) {
@@ -193,6 +237,13 @@ function renderActions(actions) {
 
 // initViews 订阅各种数据变化，相关页面自动刷新
 export function initViews() {
+  $('search').addEventListener('input', () => lastData && !lastData.render && renderList());
+  $('search').addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.target.value = '';
+      renderList();
+    }
+  });
   const when = (test) => () => test() && renderView();
   on('library-changed', when(() => state.view === 'library'));
   on('playlists-changed', when(() => state.view.startsWith('playlist:')));

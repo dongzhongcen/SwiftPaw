@@ -8,7 +8,8 @@ export const state = {
   queue: { songs: [], current: -1, mode: 'sequence', upcoming: [] }, // Go 返回的队列快照
   playlists: [], // 所有歌单，第一个是“我喜欢”
   favorites: new Set(), // 收藏歌曲的 key
-  view: 'library', // 当前显示的页面：library / recent / queue / playlist:<id>
+  view: 'library', // 当前显示的页面：library / recent / queue / lyrics / settings / playlist:<id>
+  previousView: 'library', // 上一个页面（从歌词页返回时用）
 };
 
 const listeners = {};

@@ -1,0 +1,66 @@
+/* 设置页 */
+.settings {
+    max-width: 760px;
+    padding: 12px 28px 32px;
+}
+
+.settings-section {
+    margin-top: 18px;
+}
+
+.settings-section h2 {
+    margin: 0 0 8px;
+    color: var(--fg-faint);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 64px;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+}
+
+.settings-label {
+    font-size: 14px;
+}
+
+.settings-hint {
+    margin-top: 4px;
+    color: var(--fg-muted);
+    font-size: 12px;
+}
+
+.settings-value {
+    color: var(--fg-muted);
+    user-select: text;
+}
+
+/* 分段按钮（主题选择） */
+.segmented {
+    display: inline-flex;
+    flex: none;
+    border: 1px solid var(--border-strong);
+}
+
+.segmented button {
+    height: 32px;
+    border: none;
+    background: transparent;
+    padding: 0 16px;
+    cursor: pointer;
+}
+
+.segmented button + button {
+    border-left: 1px solid var(--border-strong);
+}
+
+.segmented button[aria-checked="true"] {
+    background: var(--accent);
+    color: var(--accent-fg);
+}
