@@ -1,0 +1,87 @@
+name: 构建 Windows 版
+
+# 推送到 main / feat/release、推送 v 开头的标签、或者在 Actions 页面手动点“Run workflow”时运行。
+# 推送标签（比如 v1.0.0）时，会额外创建 GitHub Release 并上传安装包。
+on:
+  push:
+    branches: [main, feat/release]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 安装 Wails 命令行工具
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
+
+      # NSIS 用来生成安装程序。装不上也没关系，下面会只编译 exe
+      - name: 安装 NSIS
+        id: nsis
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          if (-not (Get-Command makensis -ErrorAction SilentlyContinue)) {
+            choco install nsis -y --no-progress
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+            "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          }
+
+      - name: 编译（带安装程序）
+        if: steps.nsis.outcome == 'success'
+        run: wails build -platform windows/amd64 -clean -nsis
+
+      - name: 编译（只有 exe）
+        if: steps.nsis.outcome != 'success'
+        run: wails build -platform windows/amd64 -clean
+
+      - name: 打包
+        shell: pwsh
+        run: |
+          $version = (Get-Content wails.json -Raw | ConvertFrom-Json).info.productVersion
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path build/bin/SwiftPaw.exe -DestinationPath "dist/SwiftPaw-$version-win-x64.zip"
+          Get-ChildItem build/bin -Filter "*installer*.exe" | ForEach-Object {
+            Copy-Item $_.FullName "dist/SwiftPaw-$version-win-x64-setup.exe"
+          }
+          Get-ChildItem dist | Format-Table Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwiftPaw-win-x64
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    # 只有推送 v 开头的标签时才发布
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: SwiftPaw-win-x64
+          path: dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: 极拍 SwiftPaw ${{ github.ref_name }}
+          body_path: .github/release-notes.md
+          files: dist/*

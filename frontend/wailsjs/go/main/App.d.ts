@@ -9,6 +9,8 @@ import {queue} from '../models';
 
 export function AddToPlaylist(arg1:number,arg2:music.Song):Promise<number>;
 
+export function AppVersion():Promise<string>;
+
 export function ClearHistory():Promise<void>;
 
 export function CreatePlaylist(arg1:string):Promise<store.Playlist>;
