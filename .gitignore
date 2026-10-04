@@ -1,3 +1,7 @@
 build/bin
 node_modules
 frontend/dist
+
+# 签名用的密钥文件（Android 等）不能提交
+*.jks
+*.keystore

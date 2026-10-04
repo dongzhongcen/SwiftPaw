@@ -24,6 +24,7 @@
 
 - 桌面版和 Android 版共用的功能从 `main` 包挪到 `internal/core`，桌面版的 `App` 只负责转发，以及弹出选择文件的窗口、记住窗口大小这些和窗口有关的事情；功能和数据保存的位置都不变
 - `THIRD_PARTY_NOTICES.md` 增加 Android 版用到的 Go 模块、Capacitor、AndroidX 等依赖
+- `.gitignore` 忽略 `*.jks`、`*.keystore` 签名密钥文件，防止误提交
 - 依赖更新：golang.org/x/text 0.41.0、golang.org/x/net 0.58.0、golang.org/x/crypto 0.55.0（随 golang.org/x/mobile 一起升级）
 
 ## [1.0.1] - 2026-10-04
