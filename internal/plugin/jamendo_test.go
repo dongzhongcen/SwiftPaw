@@ -109,8 +109,8 @@ func newJamendoAPI(t *testing.T) *jamendoAPI {
 			reply("success", 0, "", results)
 		case q.Get("id") != "":
 			id := q.Get("id")
-			if id == "missing" {
-				reply("success", 0, "", nil)
+			if id == "missing" || id == "flaky" && api.count()%2 == 1 {
+				reply("success", 0, "", nil) // 下架的歌查不到；flaky 模拟 Jamendo 偶尔返回空结果
 				return
 			}
 			track := jamendoTrack(id, host, format, id == "a")
@@ -232,19 +232,19 @@ func TestJamendoPluginSearchPlayLyric(t *testing.T) {
 		t.Fatalf("低音质播放地址不对：%+v %v %v", src, err, api.last())
 	}
 
-	// 无损：允许下载时用 audiodownload（flac）
+	// 无损：允许下载时用 flac 格式的在线播放地址（不用 audiodownload 下载地址）
 	src, err = m.MediaSource(first, "super")
-	if err != nil || src.URL != "https://media.example.com/download/a/flac/" || api.last().Get("audiodlformat") != "flac" {
-		t.Fatalf("允许下载时无损应该用下载地址：%+v %v %v", src, err, api.last())
+	if err != nil || src.URL != "https://media.example.com/stream/?trackid=a&format=flac" || api.last().Get("audioformat") != "flac" {
+		t.Fatalf("允许下载时无损应该用 flac 播放地址：%+v %v %v", src, err, api.last())
 	}
-	// 不允许下载：不请求下载地址，返回 null，SwiftPaw 自动换成标准音质
+	// 不允许下载：不提供无损，返回 null，SwiftPaw 自动换成标准音质
 	before = api.count()
 	src, err = m.MediaSource(second, "super")
 	if err != nil || src.URL != "https://media.example.com/stream/?trackid=b&format=mp32" {
 		t.Fatalf("不允许下载时应该换成在线播放地址：%+v %v", src, err)
 	}
 	if api.count() != before {
-		t.Error("不允许下载时不应该去请求下载地址")
+		t.Error("不允许下载时不应该去请求无损地址")
 	}
 
 	// 歌词：纯文本，<br> 和 \r\n 换成换行
@@ -254,6 +254,15 @@ func TestJamendoPluginSearchPlayLyric(t *testing.T) {
 	}
 	if lrc, err := m.Lyric(second); err != nil || lrc != "" {
 		t.Fatalf("没有歌词时应该是空的：%q %v", lrc, err)
+	}
+
+	// Jamendo 偶尔返回空结果：再查一次
+	flaky := first
+	flaky.ID, flaky.Extra = "flaky", []byte(`{"id":"flaky","title":"x"}`)
+	for range 2 {
+		if src, err := m.MediaSource(flaky, "low"); err != nil || src.URL != "https://media.example.com/stream/?trackid=flaky&format=mp31" {
+			t.Fatalf("空结果时应该重试：%+v %v", src, err)
+		}
 	}
 
 	// 歌曲已经下架（接口查不到）：没有播放地址

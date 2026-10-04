@@ -28,7 +28,11 @@ const STREAM_FORMAT = {
   low: "mp31",
   standard: "mp32",
   high: "mp32",
+  super: "flac",
 };
+
+// Jamendo 按 id 查歌曲时偶尔会返回空结果，再试一次通常就有了
+const MAX_TRIES = 3;
 
 // 读取用户在「设置」里填的 Client ID，没填时给出中文提示
 function getClientId() {
@@ -61,10 +65,13 @@ async function callApi(path, params) {
   return Array.isArray(data.results) ? data.results : [];
 }
 
-// 查一首歌的详细信息，format 是播放地址（audio 字段）的格式
+// 按 id 查一首歌的详细信息；查不到（歌曲已下架）时返回 null
 async function getTrack(id, extraParams) {
-  const results = await callApi("/tracks/", Object.assign({ id: String(id) }, extraParams));
-  return results[0] || null;
+  for (let i = 0; i < MAX_TRIES; i++) {
+    const results = await callApi("/tracks/", Object.assign({ id: String(id) }, extraParams));
+    if (results.length > 0) return results[0];
+  }
+  return null;
 }
 
 // Jamendo 的 track → 插件的 musicItem。额外的字段会原样保存，播放时传回 getMediaSource
@@ -125,22 +132,18 @@ module.exports = {
     };
   },
 
-  // 播放地址：用 audio 字段（在线播放的地址）。
-  // 无损（super）只有音乐人允许下载（audiodownload_allowed）时才提供，用的是 audiodownload 字段；
+  // 播放地址：都用 audio 字段（在线播放的地址），不用 audiodownload（那是下载地址）。
+  // 无损（super）只在音乐人允许下载（audiodownload_allowed）的歌曲上提供；
   // 不允许时返回 null，SwiftPaw 会自动换一个音质。
   async getMediaSource(musicItem, quality) {
-    if (quality === "super") {
-      if (musicItem.audiodownload_allowed === false) return null;
-      const track = await getTrack(musicItem.id, { audiodlformat: "flac" });
-      if (!track || track.audiodownload_allowed !== true || !track.audiodownload) return null;
-      return { url: track.audiodownload };
-    }
     const format = STREAM_FORMAT[quality] || STREAM_FORMAT.standard;
+    if (format === "flac" && musicItem.audiodownload_allowed === false) return null;
     if (format === "mp32" && musicItem.audio) {
       return { url: musicItem.audio }; // 搜索结果里已经有了，不用再请求一次
     }
     const track = await getTrack(musicItem.id, { audioformat: format });
     if (!track || !track.audio) return null;
+    if (format === "flac" && track.audiodownload_allowed !== true) return null;
     return { url: track.audio };
   },
 
