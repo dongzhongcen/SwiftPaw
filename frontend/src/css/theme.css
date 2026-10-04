@@ -1,0 +1,24 @@
+/*
+ * 颜色都定义成 CSS 变量，其他样式文件只用变量。
+ * 黑白极简风格：深色主题是黑底白字，强调色就是“反色”（白底黑字）。
+ */
+:root {
+    color-scheme: dark;
+
+    --bg: #000000;            /* 窗口背景 */
+    --bg-side: #050505;       /* 侧边栏 */
+    --bg-bar: #0a0a0a;        /* 底部播放栏 */
+    --bg-hover: #141414;      /* 鼠标悬停 */
+    --bg-input: #0d0d0d;      /* 输入框 */
+    --fg: #ffffff;            /* 主要文字 */
+    --fg-muted: #a6a6a6;      /* 次要文字 */
+    --fg-faint: #6b6b6b;      /* 更淡的文字 */
+    --border: #262626;        /* 普通分割线 */
+    --border-strong: #ffffff; /* 按钮边框等 */
+    --accent: #ffffff;        /* 选中/高亮的背景 */
+    --accent-fg: #000000;     /* 选中/高亮时的文字 */
+    --track: #333333;         /* 进度条底色 */
+    --danger: #ff6b6b;
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    --backdrop: rgba(0, 0, 0, 0.7);
+}

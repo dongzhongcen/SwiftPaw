@@ -15,15 +15,18 @@ func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
-		Title:  "极拍 SwiftPaw",
-		Width:  1024,
-		Height: 768,
+		Title:     "极拍 SwiftPaw",
+		Width:     1100,
+		Height:    760,
+		MinWidth:  860,
+		MinHeight: 600,
 		AssetServer: &assetserver.Options{
 			Assets:  assets,
 			Handler: NewMusicHandler(),
 		},
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 1},
 		OnStartup:        app.startup,
+		OnShutdown:       app.shutdown,
 		Bind: []interface{}{
 			app,
 		},

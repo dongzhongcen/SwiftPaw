@@ -1,0 +1,219 @@
+@font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 400;
+    src: local(""), url("../assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "PingFang SC",
+        "Noto Sans CJK SC", "Roboto", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+}
+
+#app {
+    height: 100%;
+}
+
+button,
+input {
+    font: inherit;
+    color: inherit;
+}
+
+.icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
+.muted {
+    color: var(--fg-muted);
+}
+
+/* 普通按钮：细边框，悬停时反色 */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    padding: 0 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.btn .icon {
+    width: 15px;
+    height: 15px;
+}
+
+.btn:hover,
+.btn.primary {
+    background-color: var(--accent);
+    color: var(--accent-fg);
+}
+
+.btn.primary:hover {
+    background-color: transparent;
+    color: var(--fg);
+}
+
+.btn.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: transparent;
+}
+
+.btn.danger:hover,
+.btn.primary.danger {
+    background-color: var(--danger);
+    color: var(--accent-fg);
+}
+
+/* 只有图标的按钮 */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    color: var(--fg-muted);
+    cursor: pointer;
+    padding: 0;
+    transition: color 140ms ease, background-color 140ms ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+    color: var(--fg);
+    background-color: var(--bg-hover);
+}
+
+.icon-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.icon-btn.on {
+    color: var(--fg);
+}
+
+.icon-btn.small {
+    width: 28px;
+    height: 28px;
+}
+
+.icon-btn.small .icon {
+    width: 16px;
+    height: 16px;
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 1px solid var(--fg);
+    outline-offset: 2px;
+}
+
+.text-input {
+    width: 100%;
+    height: 34px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    padding: 0 10px;
+    user-select: text;
+}
+
+.text-input:focus {
+    border-color: var(--fg);
+    outline: none;
+}
+
+/* 滑块（进度条和音量）：左边已播放部分用 --fill 控制 */
+.range {
+    --fill: 0%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 14px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+}
+
+.range::-webkit-slider-runnable-track {
+    height: 3px;
+    background: linear-gradient(to right, var(--fg) var(--fill), var(--track) var(--fill));
+}
+
+.range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: var(--fg);
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.range:hover::-webkit-slider-thumb,
+.range:focus-visible::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+/* 右下角的提示 */
+.toast {
+    position: fixed;
+    right: 24px;
+    bottom: 104px;
+    max-width: 420px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    padding: 10px 14px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 160ms ease, transform 160ms ease;
+    z-index: 20;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: none;
+}
+
+.toast.error {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--track);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
