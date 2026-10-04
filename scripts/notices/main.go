@@ -108,7 +108,8 @@ open-source software listed below; the full license texts follow. This file is g
 
 // goModules 列出编译 Windows 版（和 CI 一样的 tags）时用到的所有第三方模块
 func goModules() ([]module, error) {
-	cmd := exec.Command("go", "list", "-deps", "-tags", "desktop,production",
+	// -e：前端还没编译（没有 frontend/dist）时 main 包的 go:embed 会报错，但不影响列出依赖
+	cmd := exec.Command("go", "list", "-e", "-deps", "-tags", "desktop,production",
 		"-f", "{{if not .Standard}}{{with .Module}}{{if not .Main}}{{$.Dir}}\t{{.Path}}\t{{.Version}}\t{{.Dir}}{{end}}{{end}}{{end}}", ".")
 	cmd.Env = append(os.Environ(), "GOOS=windows", "GOARCH=amd64")
 	cmd.Stderr = os.Stderr
